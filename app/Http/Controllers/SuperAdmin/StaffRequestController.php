@@ -54,12 +54,12 @@ class StaffRequestController extends Controller
                 'photo' => $staffRequest->photo,
                 'staff_type' => $staffRequest->staff_type,
                 'professional_details' => $staffRequest->professional_details,
-                'aadhaar_name' => $staffRequest->aadhaar_name,
                 'aadhaar_number' => $staffRequest->aadhaar_number,
                 'aadhaar_dob' => $staffRequest->aadhaar_dob,
                 'aadhaar_gender' => $staffRequest->aadhaar_gender,
                 'status' => 'active',
-                'login_method' => 'password',
+                'login_method' => $staffRequest->login_method,
+                'two_factor' => $staffRequest->two_factor,
             ]);
 
             // 2. Update the staff request status to 'approved'

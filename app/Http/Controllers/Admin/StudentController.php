@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -129,5 +130,98 @@ class StudentController extends Controller
         $student->update($data);
 
         return redirect()->route('admin.students.edit', $student->id)->with('success', 'Student updated successfully.');
+    }
+
+    /**
+     * Show the form for bulk creating students.
+     */
+    public function bulkCreate()
+    {
+        return view('admin.students.bulk_create');
+    }
+
+    /**
+     * Store multiple students from CSV.
+     */
+    public function bulkStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
+
+        $file = $request->file('file');
+
+        if (($handle = fopen($file->getPathname(), 'r')) !== false) {
+            DB::beginTransaction();
+            try {
+                $header = fgetcsv($handle); 
+                $imported = 0;
+                $skipped = 0;
+                $failed = 0;
+
+                while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+                    // Basic check for required columns (Name, Email, Password, Phone, Address)
+                    if (count($data) < 5 || empty(trim($data[0])) || empty(trim($data[1])) || empty(trim($data[2])) || empty(trim($data[3])) || empty(trim($data[4]))) {
+                        $failed++;
+                        continue;
+                    }
+
+                    // Skip if email already exists
+                    if (User::where('email', trim($data[1]))->exists()) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    User::create([
+                        'name' => trim($data[0]),
+                        'email' => trim($data[1]),
+                        'password' => Hash::make(trim($data[2])),
+                        'phone_number' => trim($data[3]),
+                        'address' => trim($data[4]),
+                        'admission_number' => isset($data[5]) ? trim($data[5]) : null,
+                        'grade' => isset($data[6]) ? trim($data[6]) : null,
+                        'section' => isset($data[7]) ? trim($data[7]) : null,
+                        'aadhar_number' => isset($data[8]) ? trim($data[8]) : null,
+                        'role' => 'student',
+                        'school_id' => auth('admin')->user()->school_id,
+                        'status' => 'active',
+                    ]);
+                    $imported++;
+                }
+
+                DB::commit();
+                $report = ['imported' => $imported, 'skipped' => $skipped, 'failed' => $failed];
+                return redirect()->route('admin.students.index')->with('bulk_report', $report);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->with('error', 'An error occurred during the import process: ' . $e->getMessage());
+            } finally {
+                fclose($handle);
+            }
+        }
+
+        return back()->with('error', 'Could not open the uploaded file.');
+    }
+
+    /**
+     * Download a sample CSV file for bulk import.
+     */
+    public function downloadSample()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="student_import_sample.csv"',
+        ];
+
+        $columns = ['Name', 'Email', 'Password', 'Phone Number', 'Address', 'Admission Number', 'Grade', 'Section', 'Aadhar Number'];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fputcsv($file, ['John Doe', 'john.doe@example.com', 'Password@123', '9876543210', '123 Main St, City', 'ADM001', '10th', 'A', '123456789012']);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

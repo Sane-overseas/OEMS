@@ -85,9 +85,9 @@
                 </li>
 
                 <!-- Admin & Staff Control -->
-                <li x-data="{ open: {{ request()->is('superadmin/admins*') || request()->is('superadmin/staff-requests*') ? 'true' : 'false' }} }">
+                <li x-data="{ open: {{ (request()->is('superadmin/admins*') || request()->is('superadmin/staff-requests*') || request()->is('superadmin/admin-requests*')) ? 'true' : 'false' }} }">
                     @php $isAdminActive = request()->is('superadmin/admins*') ||
-                    request()->is('superadmin/staff-requests*'); @endphp
+                    request()->is('superadmin/staff-requests*') || request()->is('superadmin/admin-requests*'); @endphp
                     <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isAdminActive ? 'nav-link-active' : '' }}" 
                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-person-badge mr-2"></i> Admin & Staff</div>
@@ -204,8 +204,9 @@
                 </li>
 
                 <!-- Logs & Security -->
-                <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
+                <li x-data="{ open: {{ request()->routeIs('superadmin.security.logs') ? 'true' : 'false' }} }">
+                    @php $isLogsActive = request()->routeIs('superadmin.security.logs'); @endphp
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isLogsActive ? 'nav-link-active' : '' }}" 
                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-journal-text mr-2"></i> Logs & Security</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
@@ -213,7 +214,7 @@
                     <div x-show="open" x-collapse class="bg-black/20">
                         <ul class="flex flex-col py-1">
                             <li>
-                                <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="{{ route('superadmin.security.logs') }}">
+                                <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('superadmin.security.logs') ? 'text-white bg-white/10' : '' }}" href="{{ route('superadmin.security.logs') }}">
                                     Login History
                                 </a>
                             </li>
@@ -303,7 +304,7 @@
             <div class="flex items-center">
                 <div class="text-right mr-4">
                     <small class="block text-gray-500 leading-tight">Welcome,</small>
-                    <span class="font-bold text-gray-800">{{ auth()->user()->name ?? 'Super Admin' }}</span>
+                    <span class="font-bold text-gray-800">{{ auth()->user()?->name ?? 'Super Admin' }}</span>
                 </div>
                 <div class="mr-4 relative">
                     <i class="bi bi-bell text-xl text-gray-500"></i>
@@ -320,7 +321,7 @@
                     </button>
                     <ul x-show="open" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
                         <li class="px-4 py-2 border-b border-gray-100">
-                            <span class="font-bold text-gray-800">{{ auth()->user()->name ?? 'Super Admin' }}</span>
+                            <span class="font-bold text-gray-800">{{ auth()->user()?->name ?? 'Super Admin' }}</span>
                         </li>
                         <li>
                             <form id="logout-form" method="POST" action="{{ route('superadmin.logout') }}" class="m-0">

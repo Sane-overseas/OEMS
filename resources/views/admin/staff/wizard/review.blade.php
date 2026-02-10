@@ -34,9 +34,54 @@
                                     <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Staff Type</th>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $wizardData['step1']['staff_type'])) }}</td>
                                 </tr>
+                                @if(!empty($wizardData['step1']['aadhaar_number']))
+                                @if($wizardData['step1']['staff_type'] === 'teacher')
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Qualification</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step2']['qualification'] ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Subject Specialization</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step2']['subject_specialization'] ?? 'N/A' }}</td>
+                                </tr>
+                                @else
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Department</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step2']['department'] ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Designation</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step2']['designation'] ?? 'N/A' }}</td>
+                                </tr>
+                                @endif
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Aadhaar Number</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step1']['aadhaar_number'] }}</td>
+                                </tr>
+                                @endif
+                                @if(!empty($wizardData['step1']['aadhaar_dob']))
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">DOB (Aadhaar)</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $wizardData['step1']['aadhaar_dob'] }}</td>
+                                </tr>
+                                @endif
+                                @if(!empty($wizardData['step1']['aadhaar_gender']))
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Gender (Aadhaar)</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ ucfirst($wizardData['step1']['aadhaar_gender']) }}</td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Role</th>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $wizardData['step3']['role'])) }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Login Method</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ ($wizardData['step3']['login_method'] ?? 'password') == 'otp' ? 'Password + OTP' : 'Password Only' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 bg-gray-50">Two-Factor Auth</th>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ ($wizardData['step3']['two_factor'] ?? false) ? 'Enabled' : 'Disabled' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -48,14 +93,14 @@
 
                     <div class="flex justify-between items-center pt-6 border-t border-gray-100">
                         <a href="{{ route('admin.staff.create.step3') }}"
-                           class="inline-flex items-center px-5 py-2 bg-transparent border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-800 transition">
+                            class="inline-flex items-center px-5 py-2 bg-transparent border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-800 transition">
                             <svg class="h-4 w-4 mr-2 -ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                             </svg>
                             Back
                         </a>
                         <button type="submit"
-                                class="inline-flex items-center px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                            class="inline-flex items-center px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
                             Submit for Verification
                             <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
