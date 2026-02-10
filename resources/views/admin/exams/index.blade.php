@@ -1,104 +1,195 @@
 @extends('layouts.admin')
 
+@section('title','Exams')
+
 @section('content')
 
-<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-        <h5 class="mb-0 font-semibold text-gray-600 text-lg">
-            Exams
-        </h5>
+    <!-- Page header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">Exams</h1>
+            <p class="text-sm text-gray-500">Manage all created exams</p>
+        </div>
 
-        <a href="{{ route('admin.exams.create') }}" class="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors">
+        <a href="{{ route('admin.exams.create') }}"
+            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
             + Create Exam
         </a>
     </div>
 
-    <div class="p-0">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
 
         <div class="overflow-x-auto">
 
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full text-sm">
 
-                <thead class="bg-gray-50">
-                    <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <th class="px-6 py-3">Title</th>
-                        <th class="px-6 py-3">Class</th>
-                        <th class="px-6 py-3">Subject</th>
-                        <th class="px-6 py-3">Marks</th>
-                        <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
+                <thead class="bg-gray-50 text-xs uppercase text-gray-600">
+                    <tr>
+                        <th class="px-5 py-3 text-left">#</th>
+                        <th class="px-5 py-3 text-left">Exam</th>
+                        <th class="px-5 py-3 text-left">Class / Subject</th>
+                        <th class="px-5 py-3 text-left">Schedule</th>
+                        <th class="px-5 py-3 text-left">Total Marks</th>
+                        <th class="px-5 py-3 text-left">Pass Marks</th>
+                        <th class="px-5 py-3 text-left">Status</th>
+                        <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
 
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y">
 
-                    @forelse($exams as $e)
+                    @forelse($exams as $exam)
 
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $e->title }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $e->class }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $e->subject }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $e->total_marks }}</td>
+                    <tr class="hover:bg-gray-50">
 
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $badge = match($e->status){
-                                        'draft'     => 'bg-gray-100 text-gray-800',
-                                        'published' => 'bg-green-100 text-green-800',
-                                        'closed'    => 'bg-red-100 text-red-800',
-                                        default     => 'bg-gray-100 text-gray-800'
-                                    };
-                                @endphp
+                        <td class="px-5 py-3">
+                            {{ $loop->iteration }}
+                        </td>
 
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $badge }}">
-                                    {{ ucfirst($e->status) }}
-                                </span>
-                            </td>
+                        <td class="px-5 py-3">
+                            <a href="{{ route('admin.exams.show',$exam->id) }}"
+                                class="font-medium text-indigo-700 hover:underline">
+                                {{ $exam->title }}
+                            </a>
 
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="text-xs text-gray-500">
+                                {{ $exam->academic_session }}
+                            </div>
+                        </td>
 
-                                <a href="{{ route('admin.exams.schedule',$e->id) }}"
-                                   class="text-blue-600 hover:text-blue-900 mr-3">
+                        <td class="px-5 py-3">
+                            <div class="text-gray-800">
+                                Class {{ $exam->grade }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ $exam->subject }}
+                            </div>
+                        </td>
+
+                        <td class="px-5 py-3 text-sm text-gray-600">
+                            @if($exam->schedule)
+                            <div>
+                                {{ $exam->schedule->start_at->format('d M Y H:i') }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                to {{ $exam->schedule->end_at->format('d M Y H:i') }}
+                            </div>
+                            @else
+                            <span class="text-xs text-red-600 font-medium">
+                                Not scheduled
+                            </span>
+                            @endif
+                        </td>
+
+                        <td class="px-5 py-3">
+                            {{ $exam->total_marks }}
+                        </td>
+                        <td class="px-5 py-3">
+                            {{ $exam->pass_marks }}
+                        </td>
+
+                        <td class="px-5 py-3">
+                            @php
+                            $map = [
+                            'draft' => 'bg-gray-100 text-gray-700',
+                            'published' => 'bg-green-100 text-green-700',
+                            'closed' => 'bg-red-100 text-red-700',
+                            ];
+                            @endphp
+
+                            <span
+                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $map[$exam->status] ?? 'bg-gray-100 text-gray-700' }}">
+                                {{ ucfirst($exam->status) }}
+                            </span>
+                        </td>
+
+                        <td class="px-5 py-3 text-right">
+                            <div class="flex justify-end gap-2">
+
+                                @if($exam->status !== 'closed')
+
+                                <a href="{{ route('admin.exams.questions',$exam->id) }}"
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                                    Questions
+                                </a>
+
+                                <a href="{{ route('admin.exams.schedule',$exam->id) }}"
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
                                     Schedule
                                 </a>
 
-                                @if($e->status == 'draft')
-                                    <form method="POST"
-                                          action="{{ route('admin.exams.publish',$e->id) }}"
-                                          class="inline">
-                                        @csrf
-                                        <button class="text-green-600 hover:text-green-900">
-                                            Publish
-                                        </button>
-                                    </form>
-
-                                @elseif($e->status == 'published')
-                                    <form method="POST"
-                                          action="{{ route('admin.exams.close',$e->id) }}"
-                                          class="inline">
-                                        @csrf
-                                        <button class="text-red-600 hover:text-red-900">
-                                            Close
-                                        </button>
-                                    </form>
-
                                 @else
-                                    <span class="text-gray-400 text-xs ml-2">
-                                        Closed
-                                    </span>
+
+                                <span
+                                    class="px-3 py-1.5 text-center w-full font-semibold rounded-lg bg-gray-200 text-red-700">
+                                    Exam closed
+                                </span>
+
                                 @endif
 
-                            </td>
-                        </tr>
+
+                                @php
+                                $ready = $exam->schedule && $exam->questions_count > 0;
+                                @endphp
+
+                                @if($exam->status === 'draft')
+
+                                @if($ready)
+
+                                <form method="POST" action="{{ route('admin.exams.publish',$exam->id) }}"
+                                    onsubmit="return confirm('Publish this exam?')">
+                                    @csrf
+                                    <button
+                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
+                                        Publish
+                                    </button>
+                                </form>
+
+                                @else
+
+                                <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-100 text-yellow-800"
+                                    title="Add questions and schedule before publishing">
+                                    Not ready
+                                </span>
+
+                                @endif
+
+                                @endif
+                                @if($exam->status !== 'closed')
+                                <a href="{{ route('admin.exams.edit',$exam->id) }}"
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100">
+                                    Edit
+                                </a>
+                                @endif
+
+
+                                @if($exam->status === 'published')
+
+                                <form method="POST" action="{{ route('admin.exams.close',$exam->id) }}"
+                                    onsubmit="return confirm('Close this exam?')">
+                                    @csrf
+                                    <button
+                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100">
+                                        Close
+                                    </button>
+                                </form>
+
+                                @endif
+
+                            </div>
+                        </td>
+
+                    </tr>
 
                     @empty
 
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                No exams found.
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                            No exams created yet.
+                        </td>
+                    </tr>
 
                     @endforelse
 
@@ -108,10 +199,10 @@
 
         </div>
 
-    </div>
+        <div class="px-4 py-3 border-t">
+            {{ $exams->links() }}
+        </div>
 
-    <div class="px-6 py-4 border-t border-gray-200">
-        {{ $exams->links() }}
     </div>
 
 </div>

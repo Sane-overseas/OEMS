@@ -7,16 +7,16 @@ use Illuminate\Http\Request;
 use App\Models\Exam;
 use App\Models\Question;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ExamController extends Controller
 {
     public function index()
     {
-        $admin = Auth::guard('admin')->user();
+        $admin = auth('admin')->user();
 
-        $exams = Exam::where('school_id', $admin->school_id)
-            ->latest()
-            ->paginate(20);
+        $exams = Exam::with('schedule')->withCount('questions')->where('school_id', $admin->school_id)
+            ->latest()->paginate(20);
 
         return view('admin.exams.index', compact('exams'));
     }
@@ -30,47 +30,58 @@ class ExamController extends Controller
     {
         $request->validate([
             'title' => 'required',
-            'class' => 'required',
+            'grade' => 'required',
             'subject' => 'required',
-            'duration_minutes' => 'required|integer|min:1'
+            'academic_session' => 'required',
+            'exam_type' => 'required',
+            'duration_minutes' => 'required|integer|min:1',
         ]);
 
-        $admin = Auth::guard('admin')->user();
+        $admin = auth('admin')->user();
 
         $exam = Exam::create([
             'school_id' => $admin->school_id,
+            'created_by' => $admin->id,
             'title' => $request->title,
-            'class' => $request->class,
+            'grade' => $request->grade,
             'subject' => $request->subject,
+            'academic_session' => $request->academic_session,
+            'exam_type' => $request->exam_type,
             'duration_minutes' => $request->duration_minutes,
-            'instructions' => $request->instructions,
-            'status' => 'draft',
-            'created_by' => $admin->id
+            'pass_marks' => $request->pass_marks,
+            'negative_marking' => $request->negative_marking ?? 0,
+            'negative_marks' => $request->negative_marks ?? 0,
+            'shuffle_questions' => $request->shuffle_questions ?? 0,
+            'shuffle_options' => $request->shuffle_options ?? 0,
+            'instructions' => json_encode(
+                array_values(array_filter($request->instructions ?? []))
+            ),
+            'status' => 'draft'
         ]);
 
-        return redirect()
-            ->route('admin.exams.edit-questions', $exam->id);
+        return redirect()->route('admin.exams.questions', $exam->id);
     }
 
-    // Attach questions screen
-    public function editQuestions($id)
+    // professional attach screen
+    public function questions($id)
     {
-        $admin = Auth::guard('admin')->user();
+        $admin = auth('admin')->user();
 
-        $exam = Exam::where('school_id', $admin->school_id)
+        $exam = Exam::with('questions')
+            ->where('school_id', $admin->school_id)
             ->findOrFail($id);
 
         $questions = Question::where('school_id', $admin->school_id)
-            ->where('class', $exam->class)
-            ->where('subject', $exam->subject)
+            ->where('grade', $exam->grade)
             ->get();
 
-        return view('admin.exams.questions', compact('exam','questions'));
-    }
+        $attached = $exam->questions->pluck('id')->toArray();
 
+        return view('admin.exams.questions', compact('exam', 'questions', 'attached'));
+    }
     public function attachQuestions(Request $request, $id)
     {
-        $admin = Auth::guard('admin')->user();
+        $admin = auth('admin')->user();
 
         $exam = Exam::where('school_id', $admin->school_id)
             ->findOrFail($id);
@@ -79,60 +90,150 @@ class ExamController extends Controller
             'questions' => 'required|array'
         ]);
 
-        $exam->questions()->sync([]);
+        $questions = Question::whereIn('id', $request->questions)
+            ->where('school_id', $admin->school_id)
+            ->get();
 
-        $total = 0;
 
-        foreach ($request->questions as $qid) {
+        $sets = $exam->shuffle_questions
+            ? ['A', 'B', 'C', 'D']
+            : ['A'];
 
-            $q = Question::findOrFail($qid);
+        $rows = [];
+        $totalMarks = $questions->sum('marks');
 
-            $exam->questions()->attach($qid, [
-                'marks' => $q->marks
-            ]);
+        foreach ($sets as $set) {
 
-            $total += $q->marks;
+            $list = $exam->shuffle_questions
+                ? $questions->shuffle()->values()
+                : $questions->values();
+
+            $serial = 1;
+
+            foreach ($list as $q) {
+
+                $rows[] = [
+                    'exam_id' => $exam->id,
+                    'question_id' => $q->id,
+                    'set_code' => $set,
+                    'serial_no' => $serial++,
+                    'marks' => $q->marks,
+                ];
+            }
         }
 
+        // remove old mapping
+        DB::table('exam_question')
+            ->where('exam_id', $exam->id)
+            ->delete();
+
+        // insert new sets
+        DB::table('exam_question')->insert($rows);
+
         $exam->update([
-            'total_marks' => $total
+            'total_marks' => $totalMarks
+        ]);
+
+        return redirect()->route('admin.exams.schedule', $exam->id);
+    }
+
+
+    public function publish($id)
+    {
+        $admin = auth('admin')->user();
+
+        $exam = Exam::where('school_id', $admin->school_id)->findOrFail($id);
+
+        if ($exam->questions()->count() == 0)
+            return back()->with('error', 'Attach questions first');
+
+        if (!$exam->schedule)
+            return back()->with('error', 'Schedule exam first');
+
+        $exam->update(['status' => 'published']);
+
+        return back();
+    }
+
+    public function close($id)
+    {
+        $admin = auth('admin')->user();
+
+        $exam = Exam::where('school_id', $admin->school_id)->findOrFail($id);
+
+        $exam->update(['status' => 'closed']);
+
+        return back();
+    }
+
+    public function show(Request $request, $id)
+    {
+        $admin = auth('admin')->user();
+
+        $set = $request->get('set', 'A');   // default A
+
+        $exam = Exam::with(['schedule'])
+            ->where('school_id', $admin->school_id)
+            ->findOrFail($id);
+
+        $questions = $exam->questions()
+            ->wherePivot('set_code', $set)
+            ->orderBy('pivot_serial_no')
+            ->get();
+
+        $sets = \DB::table('exam_question')
+            ->where('exam_id', $exam->id)
+            ->select('set_code')
+            ->distinct()
+            ->orderBy('set_code')
+            ->pluck('set_code');
+
+        return view('admin.exams.show', compact('exam', 'questions', 'set', 'sets'));
+    }
+
+
+    public function edit($id)
+    {
+        $admin = auth('admin')->user();
+
+        $exam = Exam::where('school_id', $admin->school_id)
+            ->findOrFail($id);
+
+        if ($exam->status === 'closed') {
+            return back()->with('error', 'Closed exam cannot be edited.');
+        }
+
+        return view('admin.exams.edit', compact('exam'));
+    }
+    public function update(Request $request, $id)
+    {
+        $admin = auth('admin')->user();
+
+        $exam = Exam::where('school_id', $admin->school_id)
+            ->findOrFail($id);
+
+        if ($exam->status === 'closed') {
+            return back()->with('error', 'Closed exam cannot be edited.');
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'exam_type' => 'required|string',
+            'duration_minutes' => 'required|integer|min:1',
+            'pass_marks' => 'nullable|integer|min:0'
+        ]);
+
+        $exam->update([
+            'title' => $request->title,
+            'exam_type' => $request->exam_type,
+            'duration_minutes' => $request->duration_minutes,
+            'pass_marks' => $request->pass_marks,
         ]);
 
         return redirect()
-            ->route('admin.exams.index')
-            ->with('success','Questions attached successfully');
-    }
-    public function publish($id)
-{
-    $admin = auth()->guard('admin')->user();
-
-    $exam = Exam::where('school_id', $admin->school_id)
-        ->findOrFail($id);
-
-    // must have questions before publish
-    if ($exam->questions()->count() == 0) {
-        return back()->with('error', 'Please attach questions before publishing.');
+            ->route('admin.exams.show', $exam->id)
+            ->with('success', 'Exam updated successfully.');
     }
 
-    $exam->update([
-        'status' => 'published'
-    ]);
-
-    return back()->with('success', 'Exam published successfully.');
-}
-
-public function close($id)
-{
-    $admin = auth()->guard('admin')->user();
-
-    $exam = Exam::where('school_id', $admin->school_id)
-        ->findOrFail($id);
-
-    $exam->update([
-        'status' => 'closed'
-    ]);
-
-    return back()->with('success', 'Exam closed.');
-}
 
 }

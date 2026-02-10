@@ -186,55 +186,84 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('students', StudentController::class);
     });
 
-    Route::prefix('questions')->name('questions.')->group(function () {
+    Route::get('questions/bulk-upload', [QuestionController::class, 'bulkForm'])
+        ->name('questions.bulk.form');
 
-        Route::get('/', [QuestionController::class, 'index'])
-            ->name('index');
+    Route::post('questions/bulk-upload', [QuestionController::class, 'bulkUpload'])
+        ->name('questions.bulk.upload');
 
-        Route::get('create', [QuestionController::class, 'create'])
-            ->name('create');
-
-        Route::post('/', [QuestionController::class, 'store'])
-            ->name('store');
-    });
-
-    Route::prefix('exams')->name('exams.')->group(function () {
-
-        Route::get('/', [ExamController::class, 'index'])
-            ->name('index');
-
-        Route::get('create', [ExamController::class, 'create'])
-            ->name('create');
-
-        Route::post('/', [ExamController::class, 'store'])
-            ->name('store');
-
-        Route::get('{exam}/questions', [ExamController::class, 'editQuestions'])
-            ->name('edit-questions');
-
-        Route::post('{exam}/questions', [ExamController::class, 'attachQuestions'])
-            ->name('attach-questions');
-        Route::post(
-            '{exam}/publish',
-            [ExamController::class, 'publish']
-        )->name('publish');
-
-        Route::post(
-            '{exam}/close',
-            [ExamController::class, 'close']
-        )->name('close');
+    Route::resource('questions', QuestionController::class)
+        ->except(['show']);
 
 
-    });
 
-    Route::get(
-        'exams/{exam}/schedule',
-        [ExamScheduleController::class, 'create']
-    )->name('exams.schedule');
+    Route::get('exams', [ExamController::class, 'index'])->name('exams.index');
+    Route::get('exams/create', [ExamController::class, 'create'])->name('exams.create');
+    Route::post('exams', [ExamController::class, 'store'])->name('exams.store');
 
-    Route::post(
-        'exams/{exam}/schedule',
-        [ExamScheduleController::class, 'store']
-    )->name('exams.schedule.store');
+    Route::get('exams/{id}/questions', [ExamController::class, 'questions'])
+        ->name('exams.questions');
+
+    Route::post('exams/{id}/questions', [ExamController::class, 'attachQuestions'])
+        ->name('exams.attach');
+
+    Route::get('exams/{id}/schedule', [ExamScheduleController::class, 'create'])
+        ->name('exams.schedule');
+
+    Route::post('exams/{id}/schedule', [ExamScheduleController::class, 'store'])
+        ->name('exams.schedule.store');
+
+    Route::post('exams/{id}/publish', [ExamController::class, 'publish'])
+        ->name('exams.publish');
+
+    Route::post('exams/{id}/close', [ExamController::class, 'close'])
+        ->name('exams.close');
+    Route::get('exams/{id}', [ExamController::class, 'show'])
+        ->name('exams.show');
+    Route::get('exams/{id}/edit', [ExamController::class, 'edit'])
+        ->name('exams.edit');
+
+    Route::put('exams/{id}', [ExamController::class, 'update'])
+        ->name('exams.update');
+
+
+    // Route::prefix('exams')->name('exams.')->group(function () {
+
+    //     Route::get('/', [ExamController::class, 'index'])
+    //         ->name('index');
+
+    //     Route::get('create', [ExamController::class, 'create'])
+    //         ->name('create');
+
+    //     Route::post('/', [ExamController::class, 'store'])
+    //         ->name('store');
+
+    //     Route::get('{exam}/questions', [ExamController::class, 'editQuestions'])
+    //         ->name('edit-questions');
+
+    //     Route::post('{exam}/questions', [ExamController::class, 'attachQuestions'])
+    //         ->name('attach-questions');
+    //     Route::post(
+    //         '{exam}/publish',
+    //         [ExamController::class, 'publish']
+    //     )->name('publish');
+
+    //     Route::post(
+    //         '{exam}/close',
+    //         [ExamController::class, 'close']
+    //     )->name('close');
+
+
+    // });
+
+    // Route::get(
+    //     'exams/{exam}/schedule',
+    //     [ExamScheduleController::class, 'create']
+    // )->name('exams.schedule');
+
+    // Route::post(
+    //     'exams/{exam}/schedule',
+    //     [ExamScheduleController::class, 'store']
+    // )->name('exams.schedule.store');
 
 });
