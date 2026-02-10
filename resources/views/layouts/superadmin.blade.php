@@ -8,7 +8,7 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -23,17 +23,31 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        [x-cloak] { display: none !important; }
-        
+
+        [x-cloak] {
+            display: none !important;
+        }
+
         /* Custom Scrollbar for Sidebar */
-        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
-        .sidebar-scroll { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
-        
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
         .nav-link-active {
             color: #fff !important;
             background: rgba(255, 255, 255, 0.05);
-            border-left-color: #3b82f6 !important; /* blue-500 */
+            border-left-color: #3b82f6 !important;
+            /* blue-500 */
         }
     </style>
 </head>
@@ -50,8 +64,8 @@
 
                 <!-- Dashboard -->
                 <li>
-                    <a class="flex items-center px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ request()->is('superadmin') ? 'nav-link-active' : '' }}" 
-                       href="{{ route('superadmin.dashboard') }}">
+                    <a class="flex items-center px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ request()->is('superadmin') ? 'nav-link-active' : '' }}"
+                        href="{{ route('superadmin.dashboard') }}">
                         <div><i class="bi bi-speedometer2 mr-2"></i> Dashboard</div>
                     </a>
                 </li>
@@ -59,8 +73,8 @@
                 <!-- School Management -->
                 <li x-data="{ open: {{ request()->is('superadmin/schools*') ? 'true' : 'false' }} }">
                     @php $isSchoolActive = request()->is('superadmin/schools*'); @endphp
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isSchoolActive ? 'nav-link-active' : '' }}" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isSchoolActive ? 'nav-link-active' : '' }}"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-building mr-2"></i> School Management</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -75,7 +89,7 @@
                                     href="{{ route('superadmin.schools.create') }}">Add School</a>
                             </li>
                             <li>
-                                <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Suspension Control</a>
+                                <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('superadmin.schools.suspension') ? 'text-white bg-white/10' : '' }}" href="{{ route('superadmin.schools.suspension') }}">Suspension Control</a>
                             </li>
                             <li>
                                 <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">School Analytics</a>
@@ -88,8 +102,8 @@
                 <li x-data="{ open: {{ (request()->is('superadmin/admins*') || request()->is('superadmin/staff-requests*') || request()->is('superadmin/admin-requests*')) ? 'true' : 'false' }} }">
                     @php $isAdminActive = request()->is('superadmin/admins*') ||
                     request()->is('superadmin/staff-requests*') || request()->is('superadmin/admin-requests*'); @endphp
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isAdminActive ? 'nav-link-active' : '' }}" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isAdminActive ? 'nav-link-active' : '' }}"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-person-badge mr-2"></i> Admin & Staff</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -103,7 +117,7 @@
                                     href="{{ route('superadmin.staff-requests.index') }}">Staff Approval Queue</a></li>
                             <li><a
                                     class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->is('superadmin/admin-requests*') ? 'text-white bg-white/10' : '' }}"
-                                    href="{{ route('superadmin.admin-requests.index') }}">Blockt & unblock Account</a>
+                                    href="{{ route('superadmin.admin-requests.index') }}">Block & unblock Account</a>
                             </li>
                         </ul>
                     </div>
@@ -111,8 +125,8 @@
 
                 <!-- Roles & Permissions -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-shield-lock mr-2"></i> Roles & Permissions</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -128,15 +142,16 @@
                 </li>
 
                 <!-- Student Control -->
-                <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                <li x-data="{ open: {{ request()->routeIs('superadmin.students.*') ? 'true' : 'false' }} }">
+                    @php $isStudentActive = request()->routeIs('superadmin.students.*'); @endphp
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isStudentActive ? 'nav-link-active' : '' }}"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-people mr-2"></i> Student Control</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
                     <div x-show="open" x-collapse class="bg-black/20">
                         <ul class="flex flex-col py-1">
-                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">View Students</a></li>
+                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('superadmin.students.index') ? 'text-white bg-white/10' : '' }}" href="{{ route('superadmin.students.index') }}">View Students</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Block / Unblock</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Reset Exam Attempt</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Transfer School</a></li>
@@ -147,8 +162,8 @@
 
                 <!-- Exam Control -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-file-earmark-text mr-2"></i> Exam Control</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -167,8 +182,8 @@
 
                 <!-- Live Monitoring -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-camera-video mr-2"></i> Live Monitoring</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -186,8 +201,8 @@
 
                 <!-- Reports & Analytics -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-bar-chart mr-2"></i> Reports & Analytics</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -206,8 +221,8 @@
                 <!-- Logs & Security -->
                 <li x-data="{ open: {{ request()->routeIs('superadmin.security.logs') ? 'true' : 'false' }} }">
                     @php $isLogsActive = request()->routeIs('superadmin.security.logs'); @endphp
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isLogsActive ? 'nav-link-active' : '' }}" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent {{ $isLogsActive ? 'nav-link-active' : '' }}"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-journal-text mr-2"></i> Logs & Security</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -224,8 +239,8 @@
 
                 <!-- System Configuration -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-gear mr-2"></i> System Config</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -243,8 +258,8 @@
 
                 <!-- Infrastructure -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-server mr-2"></i> Infrastructure</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -261,8 +276,8 @@
 
                 <!-- AI & Advanced -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-cpu mr-2"></i> AI & Advanced</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>
@@ -278,8 +293,8 @@
 
                 <!-- Profile & Access -->
                 <li x-data="{ open: false }">
-                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent" 
-                       href="#" @click.prevent="open = !open">
+                    <a class="flex items-center justify-between px-5 py-3 text-gray-400 hover:bg-white/5 hover:text-white transition-colors border-l-4 border-transparent"
+                        href="#" @click.prevent="open = !open">
                         <div><i class="bi bi-person-circle mr-2"></i> Profile & Access</div>
                         <i class="bi bi-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''"></i>
                     </a>

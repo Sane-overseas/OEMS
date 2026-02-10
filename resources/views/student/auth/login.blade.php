@@ -47,7 +47,7 @@
                     <label for="email" class="block text-xs font-semibold text-gray-700 mb-1 ml-1">Email Address</label>
                     <input type="email" name="email" id="email" required autofocus autocomplete="username"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-400 text-gray-900 bg-white"
-                        placeholder="student@school.com" value="{{ old('email') }}">
+                        placeholder="mahesh@gmail.com" value="{{ old('email') }}">
                 </div>
 
                 <div>

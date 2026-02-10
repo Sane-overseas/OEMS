@@ -25,6 +25,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardCo
 use App\Http\Controllers\SuperAdmin\SchoolController;
 use App\Http\Controllers\SuperAdmin\SecurityLogController;
 use App\Http\Controllers\SuperAdmin\StaffRequestController as SuperAdminStaffRequestController;
+use App\Http\Controllers\SuperAdmin\StudentController as SuperAdminStudentController;
 
 // System Utility Routes
 Route::get('/clear-cache', function () {
@@ -69,6 +70,8 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
         // School Management
         Route::prefix('schools')->name('schools.')->group(function () {
             Route::get('/', [SchoolController::class, 'index'])->name('index');
+            Route::get('suspension', [SchoolController::class, 'suspension'])->name('suspension');
+            Route::post('{school}/toggle-suspension', [SchoolController::class, 'toggleSuspension'])->name('toggle-suspension');
             Route::get('create', [SchoolController::class, 'create'])->name('create');
             Route::post('store', [SchoolController::class, 'store'])->name('store');
             Route::get('{school}/create-admin', [SchoolController::class, 'createAdmin'])->name('create-admin');
@@ -101,6 +104,16 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
             Route::get('/', [SuperAdminAdminRequestController::class, 'index'])->name('index');
             Route::post('{adminRequest}/action', [SuperAdminAdminRequestController::class, 'action'])->name('action');
         });
+
+        // Student Management
+        Route::prefix('students')->name('students.')->group(function () {
+            Route::get('/', [SuperAdminStudentController::class, 'index'])->name('index');
+            Route::get('{id}', [SuperAdminStudentController::class, 'show'])->name('show');
+            Route::post('{id}/status', [SuperAdminStudentController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('{id}/transfer', [SuperAdminStudentController::class, 'transfer'])->name('transfer');
+            Route::post('{id}/reset-exam', [SuperAdminStudentController::class, 'resetExam'])->name('reset-exam');
+            Route::post('bulk-action', [SuperAdminStudentController::class, 'bulkAction'])->name('bulk-action');
+        });
     });
 });
 
@@ -119,7 +132,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('security-logs/export', [AdminSecurityLogController::class, 'export'])->name('security.logs.export');
 
     // -------- Authenticated Admin Area --------
-    Route::middleware('auth:admin')->group(function () {
+    Route::middleware(['auth:admin', \App\Http\Middleware\CheckSchoolActive::class . ':admin'])->group(function () {
 
         Route::view('dashboard', 'admin.dashboard')->name('dashboard');
         Route::post('logout', [AdminLoginController::class, 'logout'])->name('logout');
@@ -140,12 +153,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('requests/staff/create', [AdminRequestController::class, 'createStaffRequest'])->name('requests.staff.create');
         Route::post('requests/staff', [AdminRequestController::class, 'storeStaffRequest'])->name('requests.staff.store');
 
-         // Student Management
-         Route::get('students/bulk-sample', [StudentController::class, 'downloadSample'])->name('students.bulk_sample');
-         Route::get('students/bulk-create', [StudentController::class, 'bulkCreate'])->name('students.bulk_create');
-         Route::post('students/bulk-store', [StudentController::class, 'bulkStore'])->name('students.bulk_store');
-         Route::resource('students', StudentController::class);
-     });
+        // Student Management
+        Route::get('students/bulk-sample', [StudentController::class, 'downloadSample'])->name('students.bulk_sample');
+        Route::get('students/bulk-create', [StudentController::class, 'bulkCreate'])->name('students.bulk_create');
+        Route::post('students/bulk-store', [StudentController::class, 'bulkStore'])->name('students.bulk_store');
+        Route::resource('students', StudentController::class);
+    });
 
     // -------- Question Management --------
     Route::prefix('questions')->name('questions.')->group(function () {
@@ -174,13 +187,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Student Routes
 // =====================
 Route::prefix('student')->name('student.')->group(function () {
-    
+
     Route::middleware('guest')->group(function () {
         Route::get('login', [StudentLoginController::class, 'showLoginForm'])->name('login');
         Route::post('login', [StudentLoginController::class, 'login'])->name('login.submit');
     });
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', \App\Http\Middleware\CheckSchoolActive::class . ':web'])->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::post('logout', [StudentLoginController::class, 'logout'])->name('logout');
         Route::view('profile', 'student.profile')->name('profile'); // Placeholder
