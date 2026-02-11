@@ -1,38 +1,115 @@
 @extends('layouts.admin')
 
+@section('title','Schedule Exam')
+
 @section('content')
 
-<div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+<div class="max-w-4xl mx-auto space-y-6">
 
-<h2 class="text-lg font-semibold mb-4">
-Schedule Exam – {{ $exam->title }}
-</h2>
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">Schedule Exam</h1>
+            <p class="text-sm text-gray-500">
+                {{ $exam->title }} – Class {{ $exam->class }} | {{ $exam->subject }}
+            </p>
+        </div>
 
-<form method="POST"
-      action="{{ route('admin.exams.schedule.store',$exam->id) }}">
-@csrf
+        <a href="{{ route('admin.exams.questions',$exam->id) }}"
+           class="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Back
+        </a>
+    </div>
 
-<div class="mb-4">
-    <label class="block mb-1">Start Date & Time</label>
-    <input type="datetime-local" name="start_at"
-           class="border w-full p-2 rounded"
-           required
-           value="{{ optional($exam->schedule)->start_at }}">
-</div>
+    <form method="POST" action="{{ route('admin.exams.schedule.store',$exam->id) }}">
+        @csrf
 
-<div class="mb-4">
-    <label class="block mb-1">End Date & Time</label>
-    <input type="datetime-local" name="end_at"
-           class="border w-full p-2 rounded"
-           required
-           value="{{ optional($exam->schedule)->end_at }}">
-</div>
+        <!-- Schedule card -->
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
 
-<button class="bg-blue-600 text-white px-4 py-2 rounded">
-Save Schedule
-</button>
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-800">Exam Availability</h2>
+                <p class="text-sm text-gray-500">
+                    Define when the exam will be available to students
+                </p>
+            </div>
 
-</form>
+            <div class="p-6 grid md:grid-cols-2 gap-5">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Start date & time
+                    </label>
+                    <input type="datetime-local"
+                           name="start_at"
+                           value="{{ optional($exam->schedule)->start_at?->format('Y-m-d\TH:i') }}"
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        End date & time
+                    </label>
+                    <input type="datetime-local"
+                           name="end_at"
+                           value="{{ optional($exam->schedule)->end_at?->format('Y-m-d\TH:i') }}"
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                           required>
+                </div>
+
+                <div class="flex items-center gap-3 mt-2">
+                    <input type="checkbox"
+                           name="late_entry_allowed"
+                           value="1"
+                           @checked(optional($exam->schedule)->late_entry_allowed)
+                           class="rounded border-gray-300 text-indigo-600">
+                    <label class="text-sm text-gray-700">
+                        Allow late entry
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Late entry minutes
+                    </label>
+                    <input type="number"
+                           name="late_entry_minutes"
+                           min="0"
+                           value="{{ optional($exam->schedule)->late_entry_minutes }}"
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Max attempts
+                    </label>
+                    <input type="number"
+                           name="max_attempts"
+                           min="1"
+                           value="{{ optional($exam->schedule)->max_attempts ?? 1 }}"
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+            </div>
+
+            <div class="px-6 py-4 border-t flex justify-end gap-3">
+
+                <a href="{{ route('admin.exams.questions',$exam->id) }}"
+                   class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">
+                    Back
+                </a>
+
+                <button type="submit"
+                        class="px-6 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                    Save & Continue
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
 
 </div>
 

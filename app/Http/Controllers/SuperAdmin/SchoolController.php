@@ -15,6 +15,40 @@ class SchoolController extends Controller
         return view('superadmin.schools.index', compact('schools'));
     }
 
+    public function suspension(Request $request)
+    {
+        $query = School::query();
+
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('code', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Exclude drafts, as suspension usually applies to live schools
+        $query->where('status', '!=', 'draft');
+
+        $schools = $query->latest()->paginate(15);
+
+        return view('superadmin.schools.suspension', compact('schools'));
+    }
+
+    public function toggleSuspension($id)
+    {
+        $school = School::findOrFail($id);
+
+        if ($school->status === 'active') {
+            $school->update(['status' => 'inactive', 'is_active' => false]);
+            $message = 'School has been suspended successfully.';
+        } else {
+            $school->update(['status' => 'active', 'is_active' => true]);
+            $message = 'School suspension has been revoked. School is now active.';
+        }
+
+        return back()->with('success', $message);
+    }
+
     public function create()
     {
         return view('superadmin.schools.create'); // Step 1: Create school

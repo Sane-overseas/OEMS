@@ -10,38 +10,41 @@ use Illuminate\Support\Facades\Auth;
 
 class ExamScheduleController extends Controller
 {
-      public function create($examId)
+    public function create($id)
     {
-        $admin = auth()->guard('admin')->user();
+        $admin = auth('admin')->user();
 
-        $exam = Exam::where('school_id',$admin->school_id)
-            ->findOrFail($examId);
+        $exam = Exam::with('schedule')->where('school_id', $admin->school_id)
+            ->findOrFail($id);
 
         return view('admin.exams.schedule', compact('exam'));
     }
 
-    public function store(Request $request, $examId)
+    public function store(Request $request, $id)
     {
+
         $request->validate([
-            'start_at' => 'required|date',
-            'end_at'   => 'required|date|after:start_at'
+            'start_at' => 'required',
+            'end_at' => 'required|after:start_at',
         ]);
 
-        $admin = auth()->guard('admin')->user();
+        $admin = auth('admin')->user();
 
-        $exam = Exam::where('school_id',$admin->school_id)
-            ->findOrFail($examId);
+        $exam = Exam::where('school_id', $admin->school_id)
+            ->findOrFail($id);
 
-        ExamSchedule::updateOrCreate(
-            ['exam_id' => $exam->id],
+        $exam->schedule()->updateOrCreate(
+            ['exam_id' => $exam->id],   
             [
                 'start_at' => $request->start_at,
-                'end_at'   => $request->end_at
+                'end_at' => $request->end_at,
+                'late_entry_allowed' => $request->has('late_entry_allowed'),
+                'late_entry_minutes' => $request->late_entry_minutes ?? 0,
+                'max_attempts' => $request->max_attempts ?? 1,
             ]
         );
 
-        return redirect()
-            ->route('admin.exams.index')
-            ->with('success','Exam scheduled successfully');
+        return redirect()->route('admin.exams.index');
     }
+
 }

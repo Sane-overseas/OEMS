@@ -8,26 +8,34 @@ class Exam extends Model
 {
     protected $fillable = [
         'school_id',
+        'created_by',
         'title',
         'class',
         'subject',
-        'total_marks',
+        'academic_session',
+        'exam_type',
         'duration_minutes',
+        'pass_marks',
+        'negative_marking',
+        'negative_marks',
+        'shuffle_questions',
+        'shuffle_options',
         'instructions',
-        'status',
-        'created_by'
+        'total_marks',
+        'status'
     ];
 
     public function questions()
-    {
-        return $this->belongsToMany(
-            Question::class,
-            'exam_question'
-        )->withPivot('marks')->withTimestamps();
-    }
+{
+    return $this->belongsToMany(Question::class)
+        ->withPivot(['serial_no','marks','set_code'])
+        ->orderBy('pivot_set_code')
+        ->orderBy('pivot_serial_no');
+}
 
-    public function schedule()
-    {
-        return $this->hasOne(ExamSchedule::class);
-    }
+   public function schedule()
+{
+    return $this->hasOne(\App\Models\ExamSchedule::class);
+}
+
 }

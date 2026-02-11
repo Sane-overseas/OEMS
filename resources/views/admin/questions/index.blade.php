@@ -17,12 +17,11 @@
 
         <thead>
             <tr class="bg-gray-100">
-                <th class="border p-2">Class</th>
+                <th class="border p-2">Class/Grade</th>
                 <th class="border p-2">Subject</th>
                 <th class="border p-2">Question</th>
                 <th class="border p-2">Marks</th>
-                <th class="border p-2">Difficulty</th>
-            </tr>
+        </tr>
         </thead>
 
         <tbody>
@@ -30,9 +29,8 @@
             <tr>
                 <td class="border p-2">{{ $q->class }}</td>
                 <td class="border p-2">{{ $q->subject }}</td>
-                <td class="border p-2">{{ Str::limit($q->question_text,60) }}</td>
+                <td class="border p-2">{{ Str::limit($q->question,60) }}</td>
                 <td class="border p-2">{{ $q->marks }}</td>
-                <td class="border p-2">{{ $q->difficulty }}</td>
             </tr>
         @endforeach
         </tbody>

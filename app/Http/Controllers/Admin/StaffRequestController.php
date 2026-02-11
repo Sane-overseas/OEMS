@@ -30,6 +30,10 @@ class StaffRequestController extends Controller
             'mobile'     => 'required|string|max:15',
             'staff_type' => 'required|in:teacher,admin_staff,librarian,lab_assistant',
             'photo'      => 'nullable|image|max:2048',
+            'aadhaar_name'   => 'nullable|string|max:191',
+            'aadhaar_number' => 'nullable|string|max:191',
+            'aadhaar_dob'    => 'nullable|date',
+            'aadhaar_gender' => 'nullable|in:male,female,other',
         ]);
 
         if ($request->hasFile('photo')) {
@@ -98,11 +102,15 @@ class StaffRequestController extends Controller
     {
         $validated = $request->validate([
             'role'     => 'required|in:staff,sub_admin,invigilator',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed',
+            'login_method' => 'required|in:password,otp',
+            'two_factor'   => 'boolean',
         ]);
 
-        // Store plain password, hash on final submit
-        session(['staff_wizard.step3' => $validated]);
+        $validated['two_factor'] = $request->has('two_factor');
+        // Hash password immediately and store it.
+        $validated['password'] = Hash::make($validated['password']);
+        session(['staff_wizard.step3' => $validated]); // Now stores the hashed password
 
         return redirect()->route('admin.staff.create.review');
     }
@@ -130,8 +138,8 @@ class StaffRequestController extends Controller
         // Prevent duplicate pending request
         if (
             StaffRequest::where('email', $data['step1']['email'])
-                ->where('status', 'pending_verification')
-                ->exists()
+            ->where('status', 'pending_verification')
+            ->exists()
         ) {
             return redirect()
                 ->route('admin.staff.create.step1')
@@ -146,10 +154,15 @@ class StaffRequestController extends Controller
             'mobile'               => $data['step1']['mobile'],
             'photo'                => $data['step1']['photo'] ?? null,
             'staff_type'           => $data['step1']['staff_type'],
+            'aadhaar_number'       => $data['step1']['aadhaar_number'] ?? null,
+            'aadhaar_dob'          => $data['step1']['aadhaar_dob'] ?? null,
+            'aadhaar_gender'       => $data['step1']['aadhaar_gender'] ?? null,
             'professional_details' => $data['step2'],
             'role'                 => $data['step3']['role'],
-            'password'             => Hash::make($data['step3']['password']),
+            'password'             => $data['step3']['password'], // Already hashed
             'status'               => 'pending_verification',
+            'login_method'         => $data['step3']['login_method'],
+            'two_factor'           => $data['step3']['two_factor'],
         ]);
 
         session()->forget('staff_wizard');
