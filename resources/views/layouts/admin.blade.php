@@ -8,7 +8,6 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -142,13 +141,10 @@
                             <li>
                                 <div class="px-5 py-2 text-gray-500 text-xs uppercase font-bold mt-2">Students</div>
                             </li>
-                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                                    href="{{ route('admin.students.index') }}">View
+                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('admin.students.index') ? 'text-white bg-white/10' : '' }}" href="{{ route('admin.students.index') }}">View
                                     Students</a></li>
-                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                                    href="#">Reset Attempt</a></li>
-                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                                    href="#">Request Block Student</a></li>
+                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Reset Attempt</a></li>
+                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10" href="#">Request Block Student</a></li>
                         </ul>
                     </div>
                 </li>

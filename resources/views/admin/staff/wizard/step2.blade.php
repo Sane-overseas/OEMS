@@ -23,35 +23,35 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="qualification" class="block text-sm font-medium text-gray-700 mb-2">Qualification</label>
-                                <input type="text" name="qualification" id="qualification" 
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800" 
+                                <input type="text" name="qualification" id="qualification"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                                     value="{{ old('qualification', $data['qualification'] ?? '') }}">
                             </div>
                             <div>
                                 <label for="subject_specialization" class="block text-sm font-medium text-gray-700 mb-2">Subject Specialization</label>
-                                <input type="text" name="subject_specialization" id="subject_specialization" 
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800" 
+                                <input type="text" name="subject_specialization" id="subject_specialization"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                                     value="{{ old('subject_specialization', $data['subject_specialization'] ?? '') }}">
                             </div>
                         </div>
                         <div class="mt-6">
                             <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-2">Experience (Years)</label>
-                            <input type="number" name="experience_years" id="experience_years" 
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800" 
+                            <input type="number" name="experience_years" id="experience_years"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                                 value="{{ old('experience_years', $data['experience_years'] ?? '') }}" min="0">
                         </div>
                         @else
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="department" class="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                                <input type="text" name="department" id="department" 
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800" 
+                                <input type="text" name="department" id="department"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                                     value="{{ old('department', $data['department'] ?? '') }}">
                             </div>
                             <div>
                                 <label for="designation" class="block text-sm font-medium text-gray-700 mb-2">Designation</label>
-                                <input type="text" name="designation" id="designation" 
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800" 
+                                <input type="text" name="designation" id="designation"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                                     value="{{ old('designation', $data['designation'] ?? '') }}">
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                             class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-700 border border-gray-300 rounded-md px-5 py-2 bg-white hover:bg-gray-100 transition">
                             <!-- Heroicon: Arrow Left -->
                             <svg class="w-5 h-5 mr-2 -ml-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                             </svg>
                             Back
                         </a>
@@ -71,7 +71,7 @@
                             Next: Role & Access
                             <!-- Heroicon: Arrow Right -->
                             <svg class="w-5 h-5 ml-2 -mr-1 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </div>

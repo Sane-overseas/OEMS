@@ -11,7 +11,7 @@
         <div>
             <h1 class="text-2xl font-semibold text-gray-800">Schedule Exam</h1>
             <p class="text-sm text-gray-500">
-                {{ $exam->title }} – Class {{ $exam->grade }} | {{ $exam->subject }}
+                {{ $exam->title }} – Class {{ $exam->class }} | {{ $exam->subject }}
             </p>
         </div>
 

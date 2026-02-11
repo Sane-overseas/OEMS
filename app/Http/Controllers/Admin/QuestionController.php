@@ -29,7 +29,7 @@ class QuestionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'grade' => 'required',
+            'class' => 'required',
             'subject' => 'required',
             'question' => 'required',
             'marks' => 'required|integer|min:1',
@@ -43,7 +43,7 @@ class QuestionController extends Controller
 
             $q = Question::create([
                 'school_id' => $admin->school_id,
-                'grade' => $request->grade,
+                'class' => $request->class,
                 'subject' => $request->subject,
                 'question' => $request->question,
                 'marks' => $request->marks,
@@ -107,7 +107,7 @@ class QuestionController extends Controller
 
                 $question = Question::create([
                     'school_id' => $admin->school_id,
-                    'grade' => trim($row[0]),
+                    'class' => trim($row[0]),
                     'subject' => trim($row[1]),
                     'question' => trim($row[2]),
                     'marks' => (int) $row[3],

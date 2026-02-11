@@ -18,7 +18,7 @@ $readyToPublish = $hasQuestions && $hasSchedule;
                 {{ $exam->title }}
             </h1>
             <p class="text-sm text-gray-500">
-                Class {{ $exam->grade }} • {{ $exam->subject }}
+                Class {{ $exam->class }} • {{ $exam->subject }}
             </p>
         </div>
 

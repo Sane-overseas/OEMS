@@ -40,7 +40,7 @@
                     <p class="font-semibold mb-2">CSV format</p>
 
                     <pre class="text-xs whitespace-pre-wrap">
-grade,subject,question,marks,option_a,option_b,option_c,option_d,correct_option
+class,subject,question,marks,option_a,option_b,option_c,option_d,correct_option
 
 8,Science,What is photosynthesis?,2,Process in plants,Animal breathing,Water cycle,Soil erosion,A
 </pre>

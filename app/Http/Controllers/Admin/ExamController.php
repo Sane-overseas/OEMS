@@ -30,7 +30,7 @@ class ExamController extends Controller
     {
         $request->validate([
             'title' => 'required',
-            'grade' => 'required',
+            'class' => 'required',
             'subject' => 'required',
             'academic_session' => 'required',
             'exam_type' => 'required',
@@ -43,7 +43,7 @@ class ExamController extends Controller
             'school_id' => $admin->school_id,
             'created_by' => $admin->id,
             'title' => $request->title,
-            'grade' => $request->grade,
+            'class' => $request->class,
             'subject' => $request->subject,
             'academic_session' => $request->academic_session,
             'exam_type' => $request->exam_type,
@@ -72,7 +72,7 @@ class ExamController extends Controller
             ->findOrFail($id);
 
         $questions = Question::where('school_id', $admin->school_id)
-            ->where('grade', $exam->grade)
+            ->where('class', $exam->class)
             ->get();
 
         $attached = $exam->questions->pluck('id')->toArray();

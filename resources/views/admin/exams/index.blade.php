@@ -61,7 +61,7 @@
 
                         <td class="px-5 py-3">
                             <div class="text-gray-800">
-                                Class {{ $exam->grade }}
+                                Class {{ $exam->class }}
                             </div>
                             <div class="text-xs text-gray-500">
                                 {{ $exam->subject }}

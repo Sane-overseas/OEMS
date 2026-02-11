@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="md:col-span-2 text-sm text-gray-500">
-                    Class: <strong>{{ $exam->grade }}</strong> |
+                    Class: <strong>{{ $exam->class }}</strong> |
                     Subject: <strong>{{ $exam->subject }}</strong>
                 </div>
 

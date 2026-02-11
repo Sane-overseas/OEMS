@@ -10,7 +10,7 @@ class Exam extends Model
         'school_id',
         'created_by',
         'title',
-        'grade',
+        'class',
         'subject',
         'academic_session',
         'exam_type',

@@ -26,6 +26,12 @@ return new class extends Migration
             $table->string('mobile', 15)->nullable();
             $table->string('photo')->nullable();
 
+            // Aadhaar Details
+            $table->string('aadhaar_number')->nullable();
+            $table->string('aadhaar_name')->nullable();
+            $table->date('aadhaar_dob')->nullable();
+            $table->enum('aadhaar_gender', ['male', 'female', 'other'])->nullable();
+
             $table->enum('staff_type', [
                 'teacher',
                 'admin_staff',
@@ -44,6 +50,9 @@ return new class extends Migration
             ]);
 
             $table->string('password');
+
+            $table->enum('login_method', ['password', 'otp'])->default('password');
+            $table->boolean('two_factor')->default(true);
 
             // Request & Approval Logic
             $table->enum('status', [

@@ -32,7 +32,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Class / Grade
                         </label>
-                        <input type="text" name="grade"
+                        <input type="text" name="class"
                             class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="8" required>
                     </div>

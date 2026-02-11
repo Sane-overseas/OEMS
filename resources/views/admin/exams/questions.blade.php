@@ -13,7 +13,7 @@
                 Select Questions
             </h1>
             <p class="text-sm text-gray-500">
-                {{ $exam->title }} – Class {{ $exam->grade }} | {{ $exam->subject }}
+                {{ $exam->title }} – Class {{ $exam->class }} | {{ $exam->subject }}
             </p>
         </div>
 
@@ -94,7 +94,7 @@
                     <tbody id="questionTable" class="divide-y">
 
                         @foreach($questions as $q)
-                        <tr class="question-row hover:bg-gray-50" data-grade="{{ strtolower($q->grade) }}"
+                        <tr class="question-row hover:bg-gray-50" data-grade="{{ strtolower($q->class) }}"
                             data-subject="{{ strtolower($q->subject) }}">
 
                             <td class="px-5 py-3">
@@ -105,7 +105,7 @@
                             </td>
 
                             <td class="px-5 py-3">
-                                {{ $q->grade }}
+                                {{ $q->class }}
                             </td>
 
                             <td class="px-5 py-3">
@@ -181,7 +181,7 @@ function applyFilter(){
 
     rows.forEach(r=>{
 
-        const rg = r.dataset.grade;
+        const rg = r.dataset.class;
         const rs = r.dataset.subject;
         const text = r.querySelector('.question-text').innerText.toLowerCase();
 
