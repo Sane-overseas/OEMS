@@ -37,7 +37,6 @@ class StudentController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'admission_number' => ['nullable', 'string', 'max:50'],
             'grade' => ['nullable', 'string', 'max:50'],
-            'section' => ['nullable', 'string', 'max:50'],
             'phone_number' => ['required', 'string', 'max:20'],
             'aadhar_number' => ['nullable', 'string', 'max:20'],
             'address' => ['required', 'string', 'max:1000'],
@@ -63,7 +62,6 @@ class StudentController extends Controller
             'status' => 'active',
             'admission_number' => $validated['admission_number'],
             'grade' => $validated['grade'],
-            'section' => $validated['section'],
         ]);
 
         return redirect()->route('admin.students.create')->with('success', 'Student added successfully.');
@@ -96,7 +94,6 @@ class StudentController extends Controller
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'admission_number' => ['nullable', 'string', 'max:50'],
             'grade' => ['nullable', 'string', 'max:50'],
-            'section' => ['nullable', 'string', 'max:50'],
             'status' => ['required', 'in:active,inactive'],
             'phone_number' => ['required', 'string', 'max:20'],
             'aadhar_number' => ['nullable', 'string', 'max:20'],
@@ -109,7 +106,6 @@ class StudentController extends Controller
             'email' => $validated['email'],
             'admission_number' => $validated['admission_number'],
             'grade' => $validated['grade'],
-            'section' => $validated['section'],
             'status' => $validated['status'],
             'phone_number' => $validated['phone_number'],
             'aadhar_number' => $validated['aadhar_number'],
@@ -154,7 +150,7 @@ class StudentController extends Controller
         if (($handle = fopen($file->getPathname(), 'r')) !== false) {
             DB::beginTransaction();
             try {
-                $header = fgetcsv($handle); 
+                $header = fgetcsv($handle);
                 $imported = 0;
                 $skipped = 0;
                 $failed = 0;
@@ -180,8 +176,7 @@ class StudentController extends Controller
                         'address' => trim($data[4]),
                         'admission_number' => isset($data[5]) ? trim($data[5]) : null,
                         'grade' => isset($data[6]) ? trim($data[6]) : null,
-                        'section' => isset($data[7]) ? trim($data[7]) : null,
-                        'aadhar_number' => isset($data[8]) ? trim($data[8]) : null,
+                        'aadhar_number' => isset($data[7]) ? trim($data[7]) : null,
                         'role' => 'student',
                         'school_id' => auth('admin')->user()->school_id,
                         'status' => 'active',
@@ -213,12 +208,12 @@ class StudentController extends Controller
             'Content-Disposition' => 'attachment; filename="student_import_sample.csv"',
         ];
 
-        $columns = ['Name', 'Email', 'Password', 'Phone Number', 'Address', 'Admission Number', 'Grade', 'Section', 'Aadhar Number'];
+        $columns = ['Name', 'Email', 'Password', 'Phone Number', 'Address', 'Admission Number', 'Grade', 'Aadhar Number'];
 
-        $callback = function() use ($columns) {
+        $callback = function () use ($columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
-            fputcsv($file, ['John Doe', 'john.doe@example.com', 'Password@123', '9876543210', '123 Main St, City', 'ADM001', '10th', 'A', '123456789012']);
+            fputcsv($file, ['John Doe', 'john.doe@example.com', 'Password@123', '9876543210', '123 Main St, City', 'ADM001', '10', '123456789012']);
             fclose($file);
         };
 

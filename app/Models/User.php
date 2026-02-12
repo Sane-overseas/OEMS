@@ -30,7 +30,6 @@ class User extends Authenticatable
         'status',
         'admission_number',
         'grade',
-        'section',
     ];
 
     /**
@@ -59,5 +58,10 @@ class User extends Authenticatable
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function examAttempts()
+    {
+        return $this->hasMany(ExamAttempt::class);
     }
 }

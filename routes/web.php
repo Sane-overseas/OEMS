@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\StudentController;
 // Student Controllers
 use App\Http\Controllers\Student\Auth\LoginController as StudentLoginController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\ExamController as StudentExamController;
 
 // SuperAdmin Controllers
 use App\Http\Controllers\SuperAdmin\AdminController;
@@ -164,6 +165,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('questions/bulk-upload', [QuestionController::class, 'bulkForm'])
         ->name('questions.bulk.form');
 
+    Route::get('questions/bulk-sample', [QuestionController::class, 'downloadSample'])
+        ->name('questions.bulk.sample');
+
     Route::post('questions/bulk-upload', [QuestionController::class, 'bulkUpload'])
         ->name('questions.bulk.upload');
 
@@ -226,7 +230,11 @@ Route::prefix('student')->name('student.')->group(function () {
 
     Route::middleware(['auth', \App\Http\Middleware\CheckSchoolActive::class . ':web'])->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('exams', [StudentExamController::class, 'index'])->name('exams.index');
+        Route::get('exams/history', [StudentExamController::class, 'history'])->name('exams.history');
+        Route::get('exams/{id}/live', [StudentExamController::class, 'live'])->name('exams.live');
+        Route::post('exams/{id}/submit', [StudentExamController::class, 'submit'])->name('exams.submit');
         Route::post('logout', [StudentLoginController::class, 'logout'])->name('logout');
-        Route::view('profile', 'student.profile')->name('profile'); // Placeholder
+        Route::view('profile', 'student.profile')->name('profile');
     });
 });

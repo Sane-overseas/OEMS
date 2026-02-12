@@ -92,7 +92,7 @@
                             </td>
 
                             <td class="px-5 py-3 text-gray-800 question-text">
-                                {{ $q->question }}
+                                {{ $q->question_text }}
                             </td>
 
                             <td class="px-5 py-3">

@@ -154,8 +154,8 @@ class QuestionController extends Controller
         /* Normal submit */
         return redirect()->route(
             $request->has('save_add_more')
-            ? 'admin.questions.create'
-            : 'admin.questions.index'
+                ? 'admin.questions.create'
+                : 'admin.questions.index'
         );
     }
 
@@ -165,18 +165,27 @@ class QuestionController extends Controller
     {
         return view('admin.questions.bulk-upload');
     }
-    public function bulkUpload(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,csv'
-        ]);
+    // public function bulkUpload(Request $request)
+    // {
+    //     $request->validate([
+    //         'file' => 'required|file|mimes:xlsx,csv'
+    //     ]);
 
-        Excel::import(new QuestionsImport, $request->file('file'));
+    //     Excel::import(new QuestionsImport, $request->file('file'));
 
-        return redirect()
-            ->route('admin.questions.index')
-            ->with('success', 'All sheets imported successfully.');
-    }
+    //     fclose($file);
+
+    //     $report = [
+    //         'imported' => $imported,
+    //         'skipped' => $skipped,
+    //         'failed' => $failed,
+    //         'errors' => $errors
+    //     ];
+
+    //     return redirect()
+    //         ->route('admin.questions.index')
+    //         ->with('success', 'All sheets imported successfully.');
+    // }
 
     public function edit(Question $question)
     {

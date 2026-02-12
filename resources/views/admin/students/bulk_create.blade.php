@@ -47,7 +47,6 @@
                     <li><span class="font-semibold">Address</span> (Required)</li>
                     <li><span class="font-semibold">Admission Number</span> (Optional)</li>
                     <li><span class="font-semibold">Grade</span> (Optional)</li>
-                    <li><span class="font-semibold">Section</span> (Optional)</li>
                     <li><span class="font-semibold">Aadhar Number</span> (Optional)</li>
                 </ol>
             </div>

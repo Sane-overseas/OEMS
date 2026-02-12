@@ -58,7 +58,15 @@
                     <td class="px-6 py-4">{{ $exam->duration_minutes }} mins</td>
                     <td class="px-6 py-4">{{ $exam->total_marks }}</td>
                     <td class="px-6 py-4 text-right">
-                        <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition">Start Exam</a>
+                        @php
+                            $now = now();
+                            $start = $exam->schedule?->start_at;
+                            $end = $exam->schedule?->end_at;
+                            $isLive = $start && $end && $now->between($start, $end);
+                        @endphp
+                        @if($isLive)
+                            <a href="{{ route('student.exams.live', $exam->id) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition">Start Exam</a>
+                        @endif
                     </td>
                 </tr>
                 @empty

@@ -60,10 +60,16 @@
     </style>
 </head>
 
-<body class="bg-gray-50 h-full">
+<body class="bg-gray-50 h-full" x-data="{ sidebarOpen: false }">
+
+    <!-- Sidebar Backdrop -->
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" x-cloak></div>
 
     <!-- Sidebar -->
-    <div class="fixed top-0 left-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-50 transition-all duration-300">
+    <div class="fixed top-0 left-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-50 transition-transform duration-300 transform lg:translate-x-0"
+         :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
+         x-cloak
+    >
         <div class="p-5 bg-white/5 border-b border-white/10 shrink-0">
             <div class="flex items-center justify-start">
                 @if($school?->logo)
@@ -105,12 +111,6 @@
                                 <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('student.exams.index') ? 'text-white bg-white/10' : '' }}"
                                     href="{{ Route::has('student.exams.index') ? route('student.exams.index') : '#' }}">
                                     Upcoming Exams
-                                </a>
-                            </li>
-                            <li>
-                                <a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10 {{ request()->routeIs('student.exams.live') ? 'text-white bg-white/10' : '' }}"
-                                    href="{{ Route::has('student.exams.live') ? route('student.exams.live') : '#' }}">
-                                    Live Exams
                                 </a>
                             </li>
                             <li>
@@ -200,11 +200,19 @@
     </div>
 
     <!-- Main Content -->
-    <div class="ml-64 min-h-screen flex flex-col">
+    <div class="lg:ml-64 min-h-screen flex flex-col">
         <!-- Topbar -->
-        <nav class="bg-white px-8 py-4 shadow-sm flex justify-between items-center">
-            <h5 class="mb-0 text-gray-600 font-medium text-lg">@yield('title')</h5>
-            <div class="flex items-center">
+        <nav class="bg-white px-4 sm:px-6 py-3 shadow-sm flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <!-- Hamburger for mobile -->
+                <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 focus:outline-none">
+                    <i class="bi bi-list text-2xl"></i>
+                </button>
+                <h5 class="mb-0 text-gray-600 font-medium text-base sm:text-lg">
+                    @yield('title')
+                </h5>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
                 <div class="text-right mr-4">
                     <small class="block text-gray-500 leading-tight">Welcome,</small>
                     <span class="font-bold text-gray-800">{{ auth()->user()?->name ?? 'Student' }}</span>
@@ -251,7 +259,7 @@
         </nav>
 
         <!-- Page Content -->
-        <div class="p-8 flex-1">
+        <div class="p-4 sm:p-6 md:p-8 flex-1">
             @yield('content')
         </div>
     </div>
