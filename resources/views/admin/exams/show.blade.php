@@ -2,10 +2,11 @@
 
 @section('title','Exam Details')
 @php
-$hasQuestions = $exam->questions->count() > 0;
+$hasQuestions = !empty($exam->selected_questions) && count($exam->selected_questions) > 0;
 $hasSchedule = !is_null($exam->schedule);
 $readyToPublish = $hasQuestions && $hasSchedule;
 @endphp
+
 
 @section('content')
 
@@ -176,8 +177,9 @@ $readyToPublish = $hasQuestions && $hasSchedule;
                 Attached Questions
             </h3>
             <span class="text-sm text-gray-500">
-                {{ $exam->questions->count() }} questions
+                {{ count($exam->selected_questions ?? []) }} questions
             </span>
+
         </div>
 
         <div class="overflow-x-auto">
@@ -200,19 +202,19 @@ $readyToPublish = $hasQuestions && $hasSchedule;
 
                     <tr>
                         <td class="px-5 py-3">
-                            {{ $q->pivot->serial_no }}
+                            {{ $loop->iteration }}
                         </td>
 
                         <td class="px-5 py-3">
-                            {{ $q->question }}
+                            {{ $q->question_text }}
                         </td>
 
                         <td class="px-5 py-3">
-                            {{ $q->pivot->marks }}
+                            {{ $q->marks }}
                         </td>
 
                         <td class="px-5 py-3">
-                            {{ $q->pivot->set_code }}
+                            A
                         </td>
                     </tr>
 
@@ -227,6 +229,7 @@ $readyToPublish = $hasQuestions && $hasSchedule;
                     @endforelse
 
                 </tbody>
+
 
             </table>
 

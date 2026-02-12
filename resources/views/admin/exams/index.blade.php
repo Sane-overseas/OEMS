@@ -131,8 +131,11 @@
 
 
                                 @php
-                                $ready = $exam->schedule && $exam->questions_count > 0;
+                                $ready = $exam->schedule
+                                && !empty($exam->selected_questions)
+                                && count($exam->selected_questions) > 0;
                                 @endphp
+
 
                                 @if($exam->status === 'draft')
 

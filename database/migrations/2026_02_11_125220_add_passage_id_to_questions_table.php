@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('exam_question', function (Blueprint $table) {
-             $table->string('serial_no')->after('set_code');
+        Schema::table('questions', function (Blueprint $table) {
+                $table->unsignedBigInteger('passage_id')->nullable()->after('type');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('exam_question', function (Blueprint $table) {
-            $table->dropColumn('serial_no');
+        Schema::table('questions', function (Blueprint $table) {
+            //
         });
     }
 };

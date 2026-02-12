@@ -68,7 +68,6 @@
                             <th class="pl-6 py-3 text-left text-xs font-semibold text-gray-700">Name</th>
                             <th class="py-3 text-left text-xs font-semibold text-gray-700">Admission No</th>
                             <th class="py-3 text-left text-xs font-semibold text-gray-700">Grade</th>
-                            <th class="py-3 text-left text-xs font-semibold text-gray-700">Section</th>
                             <th class="py-3 text-left text-xs font-semibold text-gray-700">Status</th>
                             <th class="pr-6 py-3 text-right text-xs font-semibold text-gray-700">Actions</th>
                         </tr>
@@ -104,13 +103,6 @@
                             <td>
                                 @if($student->grade)
                                     <span class="inline-block px-2 py-1 rounded bg-green-100 text-green-800 border border-green-200 text-xs font-medium">{{ $student->grade }}</span>
-                                @else
-                                    <span class="text-gray-400 text-xs">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($student->section)
-                                    <span class="inline-block px-2 py-1 rounded bg-gray-200 text-gray-700 border border-gray-300 text-xs font-medium">{{ $student->section }}</span>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>
                                 @endif

@@ -7,11 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Question extends Model
 {
      protected $fillable = [
-        'school_id','class','subject','question','marks'
+        'school_id','class','subject','question','marks','type','status', 'passage', 'passage_id', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option','difficulty','created_by'
     ];
 
-    public function options()
-    {
-        return $this->hasMany(QuestionOption::class);
-    }
+   
 }
