@@ -36,7 +36,7 @@
                     class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
                 <i class="bi bi-camera-video"></i> <i class="bi bi-mic"></i> <i class="bi bi-display"></i> Grant Access & Start
             </button>
-        </div>
+        </div>  
     </div>
 
     <!-- Full Screen Enforcer Overlay -->

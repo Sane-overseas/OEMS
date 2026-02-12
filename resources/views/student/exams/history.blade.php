@@ -1,13 +1,13 @@
 @extends('layouts.student')
 
-@section('title', 'Upcoming Exams')
+@section('title', 'Exam History')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-2 sm:px-4">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
-        <h1 class="text-2xl font-bold text-gray-800">Upcoming Exams</h1>
-        <a href="{{ route('student.exams.history') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
-            <i class="bi bi-clock-history mr-2"></i> Exam History
+        <h1 class="text-2xl font-bold text-gray-800">Exam History</h1>
+        <a href="{{ route('student.exams.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+            <i class="bi bi-arrow-left mr-2"></i> Back to Upcoming
         </a>
     </div>
 
@@ -23,7 +23,7 @@
                             <th class="px-6 py-3">Schedule</th>
                             <th class="px-6 py-3">Duration</th>
                             <th class="px-6 py-3">Total Marks</th>
-                            <th class="px-6 py-3 text-right">Action</th>
+                            <th class="px-6 py-3 text-right">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -74,38 +74,17 @@
                                 {{ $exam->total_marks }}
                             </td>
                             <td class="px-6 py-4 text-right">
-                                @php
-                                    $now = now();
-                                    $start = $exam->schedule?->start_at;
-                                    $end = $exam->schedule?->end_at;
-                                    $isLive = $start && $end && $now->between($start, $end);
-                                    $isUpcoming = $start && $now->lessThan($start);
-                                    $isExpired = $end && $now->greaterThan($end);
-                                @endphp
-
-                                @if($isLive)
-                                    <a href="{{ route('student.exams.live', $exam->id) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition">
-                                        Start Exam
-                                    </a>
-                                @elseif($isUpcoming)
-                                    <span class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded border border-blue-100">
-                                        Upcoming
-                                    </span>
-                                @elseif($isExpired)
-                                    <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-500 text-xs font-medium rounded border border-gray-200">
-                                        Expired
-                                    </span>
-                                @else
-                                    <span class="text-gray-400 text-xs">-</span>
-                                @endif
+                                <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-500 text-xs font-medium rounded border border-gray-200">
+                                    Expired
+                                </span>
                             </td>
                         </tr>
                         @empty
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <div class="flex flex-col items-center justify-center">
-                                    <i class="bi bi-clipboard-x text-4xl mb-2 text-gray-300"></i>
-                                    <p>No upcoming exams found.</p>
+                                    <i class="bi bi-clock-history text-4xl mb-2 text-gray-300"></i>
+                                    <p>No past exams found.</p>
                                 </div>
                             </td>
                         </tr>
@@ -121,30 +100,9 @@
             <div class="border-b border-gray-100 px-4 py-2 flex flex-col gap-2">
                 <div class="flex items-center justify-between">
                     <span class="text-base font-semibold text-gray-800">{{ $exam->title }}</span>
-                    @php
-                        $now = now();
-                        $start = $exam->schedule?->start_at;
-                        $end = $exam->schedule?->end_at;
-                        $isLive = $start && $end && $now->between($start, $end);
-                        $isUpcoming = $start && $now->lessThan($start);
-                        $isExpired = $end && $now->greaterThan($end);
-                    @endphp
-
-                    @if($isLive)
-                        <a href="{{ route('student.exams.live', $exam->id) }}" class="ml-2 inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition whitespace-nowrap">
-                            Start Exam
-                        </a>
-                    @elseif($isUpcoming)
-                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded border border-blue-100">
-                            Upcoming
-                        </span>
-                    @elseif($isExpired)
-                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded border border-gray-200">
-                            Expired
-                        </span>
-                    @else
-                        <span class="ml-2 text-gray-400 text-xs">-</span>
-                    @endif
+                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded border border-gray-200">
+                        Expired
+                    </span>
                 </div>
                 <div class="flex flex-col gap-1 text-sm">
                     <div>
@@ -191,8 +149,8 @@
             @empty
             <div class="px-4 py-12 text-center text-gray-500">
                 <div class="flex flex-col items-center justify-center">
-                    <i class="bi bi-clipboard-x text-4xl mb-2 text-gray-300"></i>
-                    <p>No upcoming exams found.</p>
+                    <i class="bi bi-clock-history text-4xl mb-2 text-gray-300"></i>
+                    <p>No past exams found.</p>
                 </div>
             </div>
             @endforelse

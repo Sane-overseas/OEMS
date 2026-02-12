@@ -220,6 +220,7 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::middleware(['auth', \App\Http\Middleware\CheckSchoolActive::class . ':web'])->group(function () {
         Route::get('dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::get('exams', [StudentExamController::class, 'index'])->name('exams.index');
+        Route::get('exams/history', [StudentExamController::class, 'history'])->name('exams.history');
         Route::get('exams/{id}/live', [StudentExamController::class, 'live'])->name('exams.live');
         Route::post('exams/{id}/submit', [StudentExamController::class, 'submit'])->name('exams.submit');
         Route::post('logout', [StudentLoginController::class, 'logout'])->name('logout');

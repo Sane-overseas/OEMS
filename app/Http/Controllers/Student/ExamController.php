@@ -12,15 +12,39 @@ class ExamController extends Controller
     public function index()
     {
         $student = Auth::user();
+        $now = now();
 
         $exams = Exam::where('school_id', $student->school_id)
             ->where('class', $student->grade)
             ->where('status', 'published')
+            ->where(function ($query) use ($now) {
+                $query->whereHas('schedule', function ($q) use ($now) {
+                    $q->where('end_at', '>', $now);
+                })->orWhereDoesntHave('schedule');
+            })
             ->with('schedule')
             ->latest()
             ->paginate(10);
 
         return view('student.exams.index', compact('exams'));
+    }
+
+    public function history()
+    {
+        $student = Auth::user();
+        $now = now();
+
+        $exams = Exam::where('school_id', $student->school_id)
+            ->where('class', $student->grade)
+            ->where('status', 'published')
+            ->whereHas('schedule', function ($q) use ($now) {
+                $q->where('end_at', '<=', $now);
+            })
+            ->with('schedule')
+            ->latest()
+            ->paginate(10);
+
+        return view('student.exams.history', compact('exams'));
     }
 
     public function live($id)
