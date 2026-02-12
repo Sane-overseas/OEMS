@@ -26,16 +26,20 @@ class Exam extends Model
     ];
 
     public function questions()
-{
-    return $this->belongsToMany(Question::class)
-        ->withPivot(['serial_no','marks','set_code'])
-        ->orderBy('pivot_set_code')
-        ->orderBy('pivot_serial_no');
-}
+    {
+        return $this->belongsToMany(Question::class)
+            ->withPivot(['serial_no', 'marks', 'set_code'])
+            ->orderBy('pivot_set_code')
+            ->orderBy('pivot_serial_no');
+    }
 
-   public function schedule()
-{
-    return $this->hasOne(\App\Models\ExamSchedule::class);
-}
+    public function schedule()
+    {
+        return $this->hasOne(\App\Models\ExamSchedule::class);
+    }
 
+    public function attempts()
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
 }

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $exam->title }} | Live Exam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        /* Custom scrollbar for question palette */
+        .palette-scroll::-webkit-scrollbar { width: 6px; }
+        .palette-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col overflow-hidden select-none" x-data="examApp()" x-init="init()">
+
+    <!-- Permissions Setup Screen -->
+    <div x-show="!isSetupComplete" class="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center p-4 text-center" x-cloak>
+        <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">Exam Security Check</h2>
+            <p class="text-gray-600 mb-8">
+                To ensure exam integrity, we require access to your <strong>camera</strong>, <strong>microphone</strong>, and <strong>screen</strong>. 
+                Please grant permissions to continue.
+            </p>
+
+            <div x-show="permissionError" class="mb-6 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+                <i class="bi bi-exclamation-circle mr-1"></i> <span x-text="permissionError"></span>
+            </div>
+
+            <button @click="requestPermissions" 
+                    class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                <i class="bi bi-camera-video"></i> <i class="bi bi-mic"></i> <i class="bi bi-display"></i> Grant Access & Start
+            </button>
+        </div>
+    </div>
+
+    <!-- Full Screen Enforcer Overlay -->
+    <div x-show="isSetupComplete && !isFullScreen" 
+         class="fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-sm flex items-center justify-center p-4"
+         x-transition.opacity
+         x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Full Screen Required</h2>
+            <p class="text-gray-600 mb-6">
+                Please enable full-screen mode to continue with your exam.
+            </p>
+            <button @click="triggerFullScreen" 
+                    class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                Enter Full Screen
+            </button>
+        </div>
+    </div>
+
+    <!-- Violation Warning Overlay -->
+    <div x-show="showViolationWarning" 
+         class="fixed inset-0 z-[70] bg-gray-900/95 backdrop-blur-sm flex items-center justify-center p-4"
+         x-transition.opacity
+         x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Warning: Navigation Prohibited</h2>
+            <p class="text-gray-600 mb-6" x-text="violationMessage"></p>
+            <button x-show="violationCount <= maxViolations" @click="dismissViolationWarning" 
+                    class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
+                I Understand, Return to Exam
+            </button>
+        </div>
+    </div>
+
+    <div x-show="isSetupComplete" class="flex flex-col h-full w-full" x-cloak>
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 shrink-0 z-20">
+        <div class="flex items-center gap-4">
+            <div class="font-bold text-lg text-gray-800">{{ $exam->title }}</div>
+            <span class="px-2 py-1 bg-gray-100 text-xs rounded text-gray-600">{{ $exam->subject }}</span>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <!-- Timer -->
+            <div class="flex items-center gap-2 text-xl font-mono font-bold" 
+                 :class="remainingSeconds < 300 ? 'text-red-600 animate-pulse' : 'text-blue-600'">
+                <i class="bi bi-stopwatch"></i>
+                <span x-text="formatTime(remainingSeconds)"></span>
+            </div>
+            
+            <div class="h-8 w-px bg-gray-300"></div>
+
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                    {{ substr(auth()->user()->name, 0, 1) }}
+                </div>
+                <span class="text-sm font-medium text-gray-700 hidden md:block">{{ auth()->user()->name }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Question Area -->
+        <main class="flex-1 flex flex-col h-full relative">
+            <div class="flex-1 overflow-y-auto p-6 md:p-10" id="question-container">
+                <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-8 min-h-[400px]">
+                    
+                    <!-- Question Header -->
+                    <div class="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
+                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Question <span x-text="currentIndex + 1"></span> of <span x-text="questions.length"></span>
+                        </span>
+                        <span class="text-sm font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                            <span x-text="currentQuestion.marks"></span> Marks
+                        </span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div class="text-lg text-gray-900 font-medium mb-8 leading-relaxed" x-text="currentQuestion.text"></div>
+
+                    <!-- Options -->
+                    <div class="space-y-3">
+                        <template x-for="option in currentQuestion.options" :key="option.id">
+                            <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:bg-gray-50"
+                                   :class="answers[currentQuestion.id] === option.id ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200'">
+                                <input type="radio" :name="'q_' + currentQuestion.id" :value="option.id" 
+                                       x-model="answers[currentQuestion.id]" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                <span class="ml-3 text-gray-700" x-text="option.text"></span>
+                            </label>
+                        </template>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bg-white border-t border-gray-200 p-4 flex justify-between items-center shrink-0">
+                <button @click="prevQuestion" :disabled="currentIndex === 0"
+                        class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <i class="bi bi-arrow-left"></i> Previous
+                </button>
+
+                <div class="flex gap-3">
+                    <button @click="clearSelection" class="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium">
+                        Clear Selection
+                    </button>
+                    <button @click="markForReview" class="px-4 py-2 text-sm text-yellow-600 hover:text-yellow-800 font-medium flex items-center gap-1">
+                        <i class="bi" :class="isMarkedForReview(currentQuestion.id) ? 'bi-flag-fill' : 'bi-flag'"></i>
+                        <span x-text="isMarkedForReview(currentQuestion.id) ? 'Unmark Review' : 'Mark for Review'"></span>
+                    </button>
+                </div>
+
+                <button @click="nextQuestion" x-show="currentIndex < questions.length - 1"
+                        class="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 flex items-center gap-2">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+
+                <form id="autoSubmitForm" x-show="currentIndex === questions.length - 1" method="POST" action="{{ route('student.exams.submit', $exam->id) }}" x-cloak>
+                    @csrf
+                    <input type="hidden" name="set_code" value="A">
+                    <input type="hidden" name="answers" :value="JSON.stringify(answers)">
+                    <button type="submit" onclick="return confirm('Are you sure you want to submit the exam?')"
+                            class="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 flex items-center gap-2">
+                        Submit Exam <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Sidebar (Question Palette) -->
+        <aside class="w-72 bg-white border-l border-gray-200 flex flex-col shrink-0 z-10">
+            <div class="p-4 border-b border-gray-100 font-semibold text-gray-700">Question Palette</div>
+            
+            <div class="flex-1 overflow-y-auto p-4 palette-scroll">
+                <div class="grid grid-cols-4 gap-3">
+                    <template x-for="(q, index) in questions" :key="q.id">
+                        <button @click="currentIndex = index"
+                                class="w-10 h-10 rounded-lg text-sm font-semibold flex items-center justify-center transition-colors border"
+                                :class="getPaletteClass(index, q.id)">
+                            <span x-text="index + 1"></span>
+                            <!-- Review Indicator -->
+                            <div x-show="isMarkedForReview(q.id)" class="absolute top-0 right-0 -mt-1 -mr-1 w-2.5 h-2.5 bg-yellow-400 rounded-full border border-white"></div>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-200 bg-gray-50 text-xs space-y-2">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-green-500"></div> Answered</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-yellow-100 border border-yellow-400"></div> Marked for Review</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-gray-100 border border-gray-300"></div> Not Visited</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-blue-600"></div> Current</div>
+            </div>
+        </aside>
+    </div>
+    </div>
+
+    <script>
+        function examApp() {
+            return {
+                questions: @json($questionsData),
+                currentIndex: 0,
+                answers: {},
+                reviewList: [],
+                remainingSeconds: {{ $exam->duration_minutes * 60 }}, // Default to duration, ideally sync with server start time
+                isFullScreen: false,
+                violationCount: 0,
+                maxViolations: 3,
+                isHandlingViolation: false,
+                isSetupComplete: false,
+                permissionError: null,
+                mediaStream: null,
+                screenStream: null,
+                showViolationWarning: false,
+                violationMessage: '',
+
+                get currentQuestion() {
+                    return this.questions[this.currentIndex];
+                },
+
+                init() {
+                    // Wait for permissions
+                },
+
+                async requestPermissions() {
+                    this.permissionError = null;
+                    try {
+                        // Request Camera & Microphone
+                        this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                        
+                        // Request Screen
+                        this.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                        
+                        // If successful
+                        this.isSetupComplete = true;
+                        this.startExam();
+
+                    } catch (err) {
+                        console.error(err);
+                        this.permissionError = "Access denied: " + err.message + ". Please allow access to proceed.";
+                        
+                        // Cleanup if partial success
+                        if(this.mediaStream) this.mediaStream.getTracks().forEach(t => t.stop());
+                        if(this.screenStream) this.screenStream.getTracks().forEach(t => t.stop());
+                        this.mediaStream = null;
+                        this.screenStream = null;
+                    }
+                },
+
+                startExam() {
+                    this.initTimer();
+                    this.initSecurity();
+                    
+                    // Monitor screen stream stop
+                    if(this.screenStream) {
+                        this.screenStream.getVideoTracks()[0].addEventListener('ended', () => {
+                            alert('Screen sharing stopped. The exam will be submitted.');
+                            this.submitExam();
+                        });
+                    }
+                },
+
+                initTimer() {
+                    // Attempt to enter full screen on load (browser may block this without interaction)
+                    this.triggerFullScreen();
+                    
+                    setInterval(() => {
+                        if (this.remainingSeconds > 0) {
+                            this.remainingSeconds--;
+                        } else {
+                            this.submitExam();
+                        }
+                    }, 1000);
+                },
+
+                initSecurity() {
+                    // 1. Full Screen Enforcement
+                    this.checkFullScreen();
+                    document.addEventListener('fullscreenchange', () => {
+                        this.checkFullScreen();
+                    });
+
+                    // 2. Prevent Right Click
+                    document.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                    });
+
+                    // 3. Prevent Shortcuts
+                    document.addEventListener('keydown', (e) => {
+                        // Block F-keys that can interfere
+                        if ([116, 122, 123].includes(e.keyCode)) { // F5, F11, F12
+                            e.preventDefault();
+                        }
+
+                        // Block Ctrl-based shortcuts
+                        if (e.ctrlKey) {
+                            // Block copy, paste, cut, new tab, new window, close, print, save, reload, view source, etc.
+                            if (['c', 'v', 'x', 'n', 't', 'w', 'p', 's', 'r', 'u'].includes(e.key.toLowerCase())) {
+                                e.preventDefault();
+                            }
+                            // Block dev tools
+                            if (e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) {
+                                e.preventDefault();
+                            }
+                        }
+
+                        // Block Alt-based shortcuts
+                        if (e.altKey && (e.key === 'F4' || e.key === 'Tab')) {
+                            e.preventDefault();
+                        }
+
+                        // Block Windows/Command key shortcuts (like Win+D, Cmd+Tab)
+                        // Note: This has limitations and might not block all OS-level shortcuts.
+                        if (e.metaKey) {
+                            e.preventDefault();
+                        }
+                    });
+
+                    // 4. Detect Tab Switching
+                    document.addEventListener('visibilitychange', () => {
+                        // When tab is hidden and we are not already handling a violation
+                        if (document.visibilityState === 'hidden' && !this.isHandlingViolation) {
+                            this.handleViolation();
+                        }
+                    });
+                },
+
+                checkFullScreen() {
+                    this.isFullScreen = !!document.fullscreenElement;
+                },
+
+                triggerFullScreen() {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                },
+
+                handleViolation() {
+                    this.isHandlingViolation = true; // Set flag to prevent re-entry
+                    
+                    this.violationCount++;
+                    if (this.violationCount > this.maxViolations) {
+                        this.violationMessage = `Violation limit exceeded. Your exam will be submitted automatically.`;
+                        this.showViolationWarning = true;
+                        setTimeout(() => this.submitExam(), 4000); // Give time to read message
+                    } else {
+                        this.violationMessage = `Warning: Leaving the exam window is prohibited. This is violation ${this.violationCount} of ${this.maxViolations}. Further violations will result in automatic submission.`;
+                        this.showViolationWarning = true;
+                    }
+                },
+
+                dismissViolationWarning() {
+                    this.showViolationWarning = false;
+                    // Reset flag after user acknowledges, with a small delay
+                    setTimeout(() => {
+                        this.isHandlingViolation = false;
+                    }, 100);
+                },
+
+                submitExam() {
+                    document.getElementById('autoSubmitForm').submit();
+                },
+
+                formatTime(seconds) {
+                    const h = Math.floor(seconds / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = seconds % 60;
+                    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                },
+
+                nextQuestion() { if (this.currentIndex < this.questions.length - 1) this.currentIndex++; },
+                prevQuestion() { if (this.currentIndex > 0) this.currentIndex--; },
+                clearSelection() { delete this.answers[this.currentQuestion.id]; },
+                
+                markForReview() {
+                    const id = this.currentQuestion.id;
+                    if (this.reviewList.includes(id)) this.reviewList = this.reviewList.filter(i => i !== id);
+                    else this.reviewList.push(id);
+                },
+                isMarkedForReview(id) { return this.reviewList.includes(id); },
+
+                getPaletteClass(index, id) {
+                    if (this.currentIndex === index) return 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-200';
+                    if (this.answers[id]) return 'bg-green-500 text-white border-green-600';
+                    if (this.reviewList.includes(id)) return 'bg-yellow-50 text-yellow-700 border-yellow-400';
+                    return 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

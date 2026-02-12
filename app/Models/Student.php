@@ -14,7 +14,6 @@ class Student extends Model
         'school_id',
         'admission_number',
         'grade',
-        'section',
     ];
 
     public function user()

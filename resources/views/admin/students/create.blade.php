@@ -158,7 +158,7 @@
 
                 <section>
                     <h3 class="text-lg font-bold text-gray-700 mb-3">Academic Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="admission_number" class="block font-medium text-sm text-gray-700 mb-1">
                                 Admission Number
@@ -178,17 +178,6 @@
                                 class="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none @error('grade') border-red-500 @enderror"
                                 autocomplete="off">
                             @error('grade')
-                            <p class="mt-1 text-red-500 text-xs">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label for="section" class="block font-medium text-sm text-gray-700 mb-1">
-                                Section
-                            </label>
-                            <input type="text" id="section" name="section" value="{{ old('section') }}" placeholder="e.g. A"
-                                class="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none @error('section') border-red-500 @enderror"
-                                autocomplete="off">
-                            @error('section')
                             <p class="mt-1 text-red-500 text-xs">{{ $message }}</p>
                             @enderror
                         </div>

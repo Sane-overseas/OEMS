@@ -100,12 +100,10 @@
                     <div x-show="open" x-collapse class="bg-black/20">
                         <ul class="flex flex-col py-1">
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                                    href="#">Student Admission</a></li>
-                            <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
                                     href="{{ route('admin.students.create') }}">New
                                     Admission</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                                    href="#">Bulk Upload</a></li>
+                                    href="{{ route('admin.students.bulk_create') }}">Bulk Upload</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"
                                     href="#">Signup Link</a></li>
                             <li><a class="block px-5 py-2 pl-11 text-sm text-gray-400 hover:text-white hover:bg-white/10"

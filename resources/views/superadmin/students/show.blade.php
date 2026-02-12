@@ -70,10 +70,6 @@
                     <label class="block text-xs text-gray-500 uppercase">Grade / Class</label>
                     <div class="mt-1 text-base font-medium text-gray-900">{{ $student->grade ?? '-' }}</div>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-500 uppercase">Section</label>
-                    <div class="mt-1 text-base font-medium text-gray-900">{{ $student->section ?? '-' }}</div>
-                </div>
             </div>
         </div>
 

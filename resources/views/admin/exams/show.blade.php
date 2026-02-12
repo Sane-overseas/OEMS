@@ -204,7 +204,7 @@ $readyToPublish = $hasQuestions && $hasSchedule;
                         </td>
 
                         <td class="px-5 py-3">
-                            {{ $q->question }}
+                            {{ $q->question_text }}
                         </td>
 
                         <td class="px-5 py-3">

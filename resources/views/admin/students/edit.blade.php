@@ -173,16 +173,6 @@
                             <p class="mt-1 text-red-500 text-xs">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div>
-                            <label for="section" class="block font-medium text-sm text-gray-700 mb-1">
-                                Section
-                            </label>
-                            <input id="section" name="section" type="text" value="{{ old('section', $student->section) }}" placeholder="e.g. A"
-                                class="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none @error('section') border-red-500 @enderror">
-                            @error('section')
-                            <p class="mt-1 text-red-500 text-xs">{{ $message }}</p>
-                            @enderror
-                        </div>
                     </div>
                     <div class="mt-6">
                         <label for="photo" class="block font-medium text-sm text-gray-700 mb-1">

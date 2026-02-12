@@ -113,7 +113,7 @@
                             </td>
 
                             <td class="px-5 py-3 text-gray-800 question-text">
-                                {{ $q->question }}
+                                {{ $q->question_text }}
                             </td>
 
                             <td class="px-5 py-3">
@@ -181,7 +181,7 @@ function applyFilter(){
 
     rows.forEach(r=>{
 
-        const rg = r.dataset.class;
+        const rg = r.dataset.grade;
         const rs = r.dataset.subject;
         const text = r.querySelector('.question-text').innerText.toLowerCase();
 
