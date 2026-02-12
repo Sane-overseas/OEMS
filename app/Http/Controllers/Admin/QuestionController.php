@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Passage;
 use Illuminate\Http\Request;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\QuestionsImport;
 
 class QuestionController extends Controller
 {
@@ -17,53 +20,146 @@ class QuestionController extends Controller
 
         $questions = Question::where('school_id', $admin->school_id)
             ->latest()->paginate(20);
+             $type = DB::selectOne("
+        SHOW COLUMNS FROM questions WHERE Field = 'difficulty'
+    ");
 
-        return view('admin.questions.index', compact('questions'));
+        preg_match("/^enum\((.*)\)$/", $type->Type, $matches);
+
+        $difficulties = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(',', $matches[1]));
+
+
+        return view('admin.questions.index', compact('questions','difficulties'));
     }
 
     public function create()
     {
-        return view('admin.questions.create');
+        $admin = auth('admin')->user();
+
+        $recentIds = session()->get('recent_questions', []);
+
+        $questions = Question::where('school_id', $admin->school_id)
+            ->whereIn('id', $recentIds)
+            ->latest()
+            ->get();
+
+        $total = Question::where('school_id', $admin->school_id)->count();
+
+        $passages = Passage::where('school_id', $admin->school_id)
+            ->latest()
+            ->get();
+        $type = DB::selectOne("
+        SHOW COLUMNS FROM questions WHERE Field = 'difficulty'
+    ");
+
+        preg_match("/^enum\((.*)\)$/", $type->Type, $matches);
+
+        $difficulties = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(',', $matches[1]));
+
+        return view('admin.questions.create', compact(
+            'questions',
+            'total',
+            'passages',
+            'difficulties'
+        ));
     }
+
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'class' => 'required',
-            'subject' => 'required',
-            'question' => 'required',
+
+            'class' => 'required|string',
+            'subject' => 'required|string',
+            'type' => 'required|in:mcq,subjective,summary',
+
+            'passage_id' => 'required_if:type,summary|nullable|exists:passages,id',
+
+            'question' => 'required|string',
             'marks' => 'required|integer|min:1',
-            'options' => 'required|array|min:2',
-            'correct' => 'required'
+            'difficulty' => 'required',
+            // only for mcq
+            'option_a' => 'required_if:type,mcq',
+            'option_b' => 'required_if:type,mcq',
+            'option_c' => 'required_if:type,mcq',
+            'option_d' => 'required_if:type,mcq',
+            'correct_option' => 'required_if:type,mcq|string'
+
         ]);
 
         $admin = auth('admin')->user();
 
-        DB::transaction(function () use ($request, $admin) {
+        DB::beginTransaction();
 
-            $q = Question::create([
+        try {
+
+            $question = Question::create([
+
                 'school_id' => $admin->school_id,
+                'created_by' => $admin->id,
+                'difficulty' => $request->difficulty,
                 'class' => $request->class,
                 'subject' => $request->subject,
+                'type' => $request->type,
+
+                'passage_id' => $request->passage_id,
+
                 'question' => $request->question,
                 'marks' => $request->marks,
+
+                'option_a' => $request->type == 'mcq' ? $request->option_a : null,
+                'option_b' => $request->type == 'mcq' ? $request->option_b : null,
+                'option_c' => $request->type == 'mcq' ? $request->option_c : null,
+                'option_d' => $request->type == 'mcq' ? $request->option_d : null,
+
+                'correct_option' => $request->type == 'mcq'
+                    ? $request->correct_option
+                    : null,
+
+            ]);
+            DB::commit();
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+            throw $e;
+
+        }
+
+        /* Store recent questions for current session */
+        $recent = session()->get('recent_questions', []);
+        $recent[] = $question->id;
+        session()->put('recent_questions', array_unique($recent));
+
+
+        /* Save & Add More (AJAX) */
+        if ($request->ajax() && $request->has('save_add_more')) {
+
+            return response()->json([
+                'id' => $question->id,
+                'class' => $question->class,
+                'subject' => $question->subject,
+                'type' => $question->type,
+                'question' => $question->question,
+                'marks' => $question->marks,
             ]);
 
-            foreach ($request->options as $i => $text) {
-                QuestionOption::create([
-                    'question_id' => $q->id,
-                    'option_text' => $text,
-                    'is_correct' => ((string) $i === (string) $request->correct)
-                ]);
-            }
-        });
+        }
 
+        /* Normal submit */
         return redirect()->route(
             $request->has('save_add_more')
             ? 'admin.questions.create'
             : 'admin.questions.index'
         );
     }
+
+
 
     public function bulkForm()
     {
@@ -72,77 +168,101 @@ class QuestionController extends Controller
     public function bulkUpload(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt'
+            'file' => 'required|file|mimes:xlsx,csv'
         ]);
 
-        $admin = auth('admin')->user();
-
-        $file = fopen($request->file('file')->getRealPath(), 'r');
-
-        $header = fgetcsv($file);
-
-        DB::beginTransaction();
-
-        try {
-
-            while (($row = fgetcsv($file)) !== false) {
-
-                /*
-                 Expected columns:
-
-                 0 = grade
-                 1 = subject
-                 2 = question
-                 3 = marks
-                 4 = option_a
-                 5 = option_b
-                 6 = option_c
-                 7 = option_d
-                 8 = correct_option (A/B/C/D)
-                */
-
-                if (count($row) < 9) {
-                    continue;
-                }
-
-                $question = Question::create([
-                    'school_id' => $admin->school_id,
-                    'class' => trim($row[0]),
-                    'subject' => trim($row[1]),
-                    'question' => trim($row[2]),
-                    'marks' => (int) $row[3],
-                ]);
-
-                $options = [
-                    'A' => $row[4],
-                    'B' => $row[5],
-                    'C' => $row[6],
-                    'D' => $row[7],
-                ];
-
-                $correct = strtoupper(trim($row[8]));
-
-                foreach ($options as $key => $text) {
-
-                    QuestionOption::create([
-                        'question_id' => $question->id,
-                        'option_text' => trim($text),
-                        'is_correct' => ($key === $correct),
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-            throw $e;
-        }
+        Excel::import(new QuestionsImport, $request->file('file'));
 
         return redirect()
             ->route('admin.questions.index')
-            ->with('success', 'Questions uploaded successfully.');
+            ->with('success', 'All sheets imported successfully.');
     }
+
+    public function edit(Question $question)
+    {
+        $admin = auth('admin')->user();
+
+        abort_if($question->school_id != $admin->school_id, 403);
+
+        $type = DB::selectOne("
+        SHOW COLUMNS FROM questions WHERE Field = 'difficulty'
+    ");
+
+        preg_match("/^enum\((.*)\)$/", $type->Type, $matches);
+
+        $difficulties = array_map(function ($value) {
+            return trim($value, "'");
+        }, explode(',', $matches[1]));
+
+        return view('admin.questions.edit', compact('question', 'difficulties'));
+    }
+
+
+    public function update(Request $request, Question $question)
+    {
+        $admin = auth('admin')->user();
+
+        abort_if($question->school_id != $admin->school_id, 403);
+
+        $request->validate([
+            'class' => 'required',
+            'subject' => 'required',
+            'type' => 'required|in:mcq,subjective,summary',
+            'question' => 'required',
+            'marks' => 'required|integer|min:1',
+
+            'option_a' => 'required_if:type,mcq',
+            'option_b' => 'required_if:type,mcq',
+            'option_c' => 'required_if:type,mcq',
+            'option_d' => 'required_if:type,mcq',
+            'difficulty' => 'required',
+            'correct_option' => 'required_if:type,mcq|string'
+        ]);
+
+        DB::transaction(function () use ($request, $question) {
+
+            $type = in_array($request->type, ['mcq', 'subjective', 'summary'])
+                ? $request->type
+                : 'mcq';
+
+            $question->update([
+
+                'class' => $request->class,
+                'subject' => $request->subject,
+                'type' => $type,
+                'question' => $request->question,
+                'marks' => $request->marks,
+                'difficulty' => $request->difficulty,
+                'option_a' => $type === 'mcq' ? $request->option_a : null,
+                'option_b' => $type === 'mcq' ? $request->option_b : null,
+                'option_c' => $type === 'mcq' ? $request->option_c : null,
+                'option_d' => $type === 'mcq' ? $request->option_d : null,
+
+                // already text (because of your JS sync)
+                'correct_option' => $type === 'mcq'
+                    ? $request->correct_option
+                    : null,
+            ]);
+
+        });
+
+
+        return redirect()
+            ->route('admin.questions.index')
+            ->with('success', 'Question updated successfully');
+    }
+
+
+    public function destroy(Question $question)
+    {
+        $admin = auth('admin')->user();
+
+        abort_if($question->school_id != $admin->school_id, 403);
+
+        $question->delete();
+
+        return back()->with('success', 'Question deleted');
+    }
+
 
 }

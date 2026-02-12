@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PassageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -169,6 +170,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('questions', QuestionController::class)
         ->except(['show']);
 
+
+    // admin routes
+    Route::get('passages', [PassageController::class, 'index'])
+        ->name('passages.index');
+
+    Route::get('passages/create', [PassageController::class, 'create'])
+        ->name('passages.create');
+
+    Route::post('passages', [PassageController::class, 'store'])
+        ->name('passages.store');
 
 
     Route::get('exams', [ExamController::class, 'index'])->name('exams.index');

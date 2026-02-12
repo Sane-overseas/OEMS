@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.exams.attach',$exam->id) }}">
+    <form id="attachForm" method="POST" action="{{ route('admin.exams.attach',$exam->id) }}">
         @csrf
 
         <!-- Top summary & filters -->
@@ -39,35 +39,13 @@
             <div class="grid md:grid-cols-6 gap-4 items-end">
 
                 <div>
-                    <label class="text-xs text-gray-500">Filter by class</label>
-                    <input id="filterGrade" class="w-full rounded-lg border-gray-300 text-sm" placeholder="8">
-                </div>
-
-                <div>
-                    <label class="text-xs text-gray-500">Filter by subject</label>
-                    <input id="filterSubject" class="w-full rounded-lg border-gray-300 text-sm" placeholder="Science">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="text-xs text-gray-500">Search question</label>
-                    <input id="searchBox" class="w-full rounded-lg border-gray-300 text-sm"
-                        placeholder="Search text...">
-                </div>
-
-                <div class="md:col-span-2 flex gap-3 justify-end">
-
-                    <div
-                        class="inline-flex items-center rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700">
-                        Selected :
-                        <span id="selectedCount" class="ml-1">0</span>
-                    </div>
-
-                    <div
-                        class="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-                        Total marks :
-                        <span id="totalMarks" class="ml-1">0</span>
-                    </div>
-
+                    <label class="text-xs text-gray-500">Difficulty</label>
+                    <select id="filterDifficulty" class="w-full rounded-lg border-gray-300 text-sm">
+                        <option value="">All</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
                 </div>
 
             </div>
@@ -95,7 +73,8 @@
 
                         @foreach($questions as $q)
                         <tr class="question-row hover:bg-gray-50" data-grade="{{ strtolower($q->class) }}"
-                            data-subject="{{ strtolower($q->subject) }}">
+                            data-subject="{{ strtolower($q->subject) }}"
+                            data-difficulty="{{ strtolower($q->difficulty) }}">
 
                             <td class="px-5 py-3">
                                 <input type="checkbox" class="question-check rounded border-gray-300 text-indigo-600"
@@ -133,75 +112,179 @@
             </div>
 
             <div class="px-6 py-4 border-t bg-white flex justify-end">
-                <button type="submit"
+                <button type="button" id="previewBtn"
                     class="inline-flex items-center rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                     Attach Selected Questions
                 </button>
+
             </div>
 
         </div>
 
     </form>
+    <div id="confirmBox" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+        <div class="bg-white rounded-lg w-full max-w-4xl p-6">
+
+            <h3 class="text-lg font-semibold mb-2">
+                Confirm questions for exam
+            </h3>
+
+            <p class="text-sm text-gray-600 mb-4">
+                {{ $exam->title }} – Class {{ $exam->class }} – {{ $exam->subject }}
+            </p>
+
+            <div class="max-h-96 overflow-y-auto border rounded">
+
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2">#</th>
+                            <th class="px-3 py-2">Difficulty</th>
+                            <th class="px-3 py-2">Question</th>
+                            <th class="px-3 py-2">Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="confirmTable"></tbody>
+                </table>
+
+            </div>
+
+            <div class="flex justify-end gap-3 mt-4">
+
+                <button type="button" id="cancelConfirm" class="px-4 py-2 border rounded">
+                    Cancel
+                </button>
+
+                <button type="submit" form="attachForm" class="px-5 py-2 bg-indigo-600 text-white rounded">
+                    Confirm & Attach
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
 
 </div>
 
 
 <script>
-    const checks = document.querySelectorAll('.question-check');
-const selectedCount = document.getElementById('selectedCount');
-const totalMarks = document.getElementById('totalMarks');
+const checks = document.querySelectorAll('.question-check');
+const rows   = document.querySelectorAll('.question-row');
 
-const filterGrade   = document.getElementById('filterGrade');
-const filterSubject = document.getElementById('filterSubject');
-const searchBox     = document.getElementById('searchBox');
+const filterDifficulty = document.getElementById('filterDifficulty');
 
-const rows = document.querySelectorAll('.question-row');
+const previewBtn   = document.getElementById('previewBtn');
+const confirmBox   = document.getElementById('confirmBox');
+const confirmTable = document.getElementById('confirmTable');
+const cancelBtn    = document.getElementById('cancelConfirm');
 
+const selectedCount = document.getElementById('selectedCount'); // may not exist
+const totalMarks    = document.getElementById('totalMarks');    // may not exist
+
+
+/* -----------------------------
+   Summary (safe – only if exists)
+--------------------------------*/
 function updateSummary(){
-    let c=0,m=0;
+
+    let c = 0;
+    let m = 0;
+
     checks.forEach(ch=>{
         if(ch.checked){
             c++;
-            m+=parseInt(ch.dataset.marks);
+            m += parseInt(ch.dataset.marks || 0);
         }
     });
-    selectedCount.innerText=c;
-    totalMarks.innerText=m;
+
+    if(selectedCount) selectedCount.innerText = c;
+    if(totalMarks) totalMarks.innerText = m;
 }
 
 checks.forEach(ch=>{
-    ch.addEventListener('change',updateSummary);
+    ch.addEventListener('change', updateSummary);
 });
 
+
+/* -----------------------------
+   Difficulty filter only
+--------------------------------*/
 function applyFilter(){
 
-    const g = filterGrade.value.toLowerCase().trim();
-    const s = filterSubject.value.toLowerCase().trim();
-    const q = searchBox.value.toLowerCase().trim();
+    const d = filterDifficulty.value.toLowerCase().trim();
 
     rows.forEach(r=>{
 
-        const rg = r.dataset.class;
-        const rs = r.dataset.subject;
-        const text = r.querySelector('.question-text').innerText.toLowerCase();
+        const rd = (r.dataset.difficulty || '').toLowerCase();
 
         let show = true;
 
-        if(g && rg !== g) show = false;
-        if(s && rs !== s) show = false;
-        if(q && !text.includes(q)) show = false;
+        if(d && rd !== d) show = false;
 
         r.style.display = show ? '' : 'none';
-
     });
 }
 
-filterGrade.addEventListener('keyup',applyFilter);
-filterSubject.addEventListener('keyup',applyFilter);
-searchBox.addEventListener('keyup',applyFilter);
+filterDifficulty.addEventListener('change', applyFilter);
 
+
+/* -----------------------------
+   Preview before attach
+--------------------------------*/
+previewBtn.addEventListener('click', function(){
+
+    confirmTable.innerHTML = '';
+
+    let index = 1;
+
+    document.querySelectorAll('.question-check:checked').forEach(ch => {
+
+        const row = ch.closest('tr');
+
+        const qtext = row.querySelector('.question-text').innerText;
+        const marks = ch.dataset.marks;
+        const diff  = row.dataset.difficulty;
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td class="px-3 py-2">${index++}</td>
+            <td class="px-3 py-2 capitalize">${diff}</td>
+            <td class="px-3 py-2">${qtext}</td>
+            <td class="px-3 py-2">${marks}</td>
+        `;
+
+        confirmTable.appendChild(tr);
+    });
+
+    if(index === 1){
+        alert('Please select at least one question');
+        return;
+    }
+
+    confirmBox.classList.remove('hidden');
+    confirmBox.classList.add('flex');
+});
+
+
+/* -----------------------------
+   Close preview
+--------------------------------*/
+cancelBtn.addEventListener('click', function(){
+    confirmBox.classList.add('hidden');
+    confirmBox.classList.remove('flex');
+});
+
+
+/* -----------------------------
+   Initial
+--------------------------------*/
 updateSummary();
+applyFilter();
 
 </script>
+
 
 @endsection

@@ -15,8 +15,10 @@ class ExamController extends Controller
     {
         $admin = auth('admin')->user();
 
-        $exams = Exam::with('schedule')->withCount('questions')->where('school_id', $admin->school_id)
-            ->latest()->paginate(20);
+        $exams = Exam::with('schedule')
+            ->where('school_id', $admin->school_id)
+            ->latest()
+            ->paginate(20);
 
         return view('admin.exams.index', compact('exams'));
     }
@@ -67,18 +69,19 @@ class ExamController extends Controller
     {
         $admin = auth('admin')->user();
 
-        $exam = Exam::with('questions')
-            ->where('school_id', $admin->school_id)
+        $exam = Exam::where('school_id', $admin->school_id)
             ->findOrFail($id);
 
         $questions = Question::where('school_id', $admin->school_id)
             ->where('class', $exam->class)
             ->get();
 
-        $attached = $exam->questions->pluck('id')->toArray();
+        $attached = $exam->selected_questions ?? [];
 
         return view('admin.exams.questions', compact('exam', 'questions', 'attached'));
     }
+
+
     public function attachQuestions(Request $request, $id)
     {
         $admin = auth('admin')->user();
@@ -94,63 +97,35 @@ class ExamController extends Controller
             ->where('school_id', $admin->school_id)
             ->get();
 
-
-        $sets = $exam->shuffle_questions
-            ? ['A', 'B', 'C', 'D']
-            : ['A'];
-
-        $rows = [];
-        $totalMarks = $questions->sum('marks');
-
-        foreach ($sets as $set) {
-
-            $list = $exam->shuffle_questions
-                ? $questions->shuffle()->values()
-                : $questions->values();
-
-            $serial = 1;
-
-            foreach ($list as $q) {
-
-                $rows[] = [
-                    'exam_id' => $exam->id,
-                    'question_id' => $q->id,
-                    'set_code' => $set,
-                    'serial_no' => $serial++,
-                    'marks' => $q->marks,
-                ];
-            }
-        }
-
-        // remove old mapping
-        DB::table('exam_question')
-            ->where('exam_id', $exam->id)
-            ->delete();
-
-        // insert new sets
-        DB::table('exam_question')->insert($rows);
-
         $exam->update([
-            'total_marks' => $totalMarks
+            'selected_questions' => $questions->pluck('id')->values()->toArray(),
+            'total_marks' => $questions->sum('marks')
         ]);
 
-        return redirect()->route('admin.exams.schedule', $exam->id);
+        return redirect()->route('admin.exams.index');
     }
+
+
 
 
     public function publish($id)
     {
         $admin = auth('admin')->user();
 
-        $exam = Exam::where('school_id', $admin->school_id)->findOrFail($id);
+        $exam = Exam::where('school_id', $admin->school_id)
+            ->findOrFail($id);
 
-        if ($exam->questions()->count() == 0)
+        if (empty($exam->selected_questions) || count($exam->selected_questions) === 0) {
             return back()->with('error', 'Attach questions first');
+        }
 
-        if (!$exam->schedule)
+        if (!$exam->schedule) {
             return back()->with('error', 'Schedule exam first');
+        }
 
-        $exam->update(['status' => 'published']);
+        $exam->update([
+            'status' => 'published'
+        ]);
 
         return back();
     }
@@ -170,27 +145,36 @@ class ExamController extends Controller
     {
         $admin = auth('admin')->user();
 
-        $set = $request->get('set', 'A');   // default A
-
-        $exam = Exam::with(['schedule'])
+        $exam = Exam::with('schedule')
             ->where('school_id', $admin->school_id)
             ->findOrFail($id);
 
-        $questions = $exam->questions()
-            ->wherePivot('set_code', $set)
-            ->orderBy('pivot_serial_no')
-            ->get();
+        // already array because of cast
+        $ids = $exam->selected_questions ?? [];
 
-        $sets = \DB::table('exam_question')
-            ->where('exam_id', $exam->id)
-            ->select('set_code')
-            ->distinct()
-            ->orderBy('set_code')
-            ->pluck('set_code');
+        $questions = collect();
 
-        return view('admin.exams.show', compact('exam', 'questions', 'set', 'sets'));
+        if (!empty($ids)) {
+
+            // keep same order as selected in exam
+            $idsString = implode(',', $ids);
+
+            $questions = Question::whereIn('id', $ids)
+                ->orderByRaw("FIELD(id, $idsString)")
+                ->get();
+        }
+
+        // since you removed sets & pivot
+        $set = 'A';
+        $sets = collect(['A']);
+
+        return view('admin.exams.show', compact(
+            'exam',
+            'questions',
+            'set',
+            'sets'
+        ));
     }
-
 
     public function edit($id)
     {
@@ -200,11 +184,14 @@ class ExamController extends Controller
             ->findOrFail($id);
 
         if ($exam->status === 'closed') {
-            return back()->with('error', 'Closed exam cannot be edited.');
+            return redirect()
+                ->route('admin.exams.index')
+                ->with('error', 'Closed exam cannot be edited.');
         }
 
         return view('admin.exams.edit', compact('exam'));
     }
+
     public function update(Request $request, $id)
     {
         $admin = auth('admin')->user();
@@ -213,27 +200,43 @@ class ExamController extends Controller
             ->findOrFail($id);
 
         if ($exam->status === 'closed') {
-            return back()->with('error', 'Closed exam cannot be edited.');
+            return redirect()
+                ->route('admin.exams.index')
+                ->with('error', 'Closed exam cannot be edited.');
         }
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'academic_session' => 'required|string',
             'exam_type' => 'required|string',
             'duration_minutes' => 'required|integer|min:1',
-            'pass_marks' => 'nullable|integer|min:0'
+            'pass_marks' => 'nullable|integer|min:0',
+            'negative_marks' => 'nullable|numeric|min:0',
         ]);
 
         $exam->update([
             'title' => $request->title,
+            'academic_session' => $request->academic_session,
             'exam_type' => $request->exam_type,
             'duration_minutes' => $request->duration_minutes,
-            'pass_marks' => $request->pass_marks,
+            'pass_marks' => $request->pass_marks ?? 0,
+
+            'negative_marking' => $request->has('negative_marking'),
+            'negative_marks' => $request->negative_marks ?? 0,
+            'shuffle_questions' => $request->has('shuffle_questions'),
+            'shuffle_options' => $request->has('shuffle_options'),
+
+            'instructions' => json_encode(
+                array_values(array_filter($request->instructions ?? []))
+            ),
         ]);
 
         return redirect()
             ->route('admin.exams.show', $exam->id)
             ->with('success', 'Exam updated successfully.');
     }
+
+
 
 
 }

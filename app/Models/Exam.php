@@ -22,8 +22,13 @@ class Exam extends Model
         'shuffle_options',
         'instructions',
         'total_marks',
-        'status'
+        'status',
+         'selected_questions',
     ];
+
+    protected $casts = [
+    'selected_questions' => 'array',
+];
 
     public function questions()
 {
@@ -32,6 +37,7 @@ class Exam extends Model
         ->orderBy('pivot_set_code')
         ->orderBy('pivot_serial_no');
 }
+
 
    public function schedule()
 {
