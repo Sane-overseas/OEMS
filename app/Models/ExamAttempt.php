@@ -20,6 +20,8 @@ class ExamAttempt extends Model
     protected $casts = [
         'started_at' => 'datetime',
         'submitted_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'last_activity_at' => 'datetime',
     ];
 
     public function user()

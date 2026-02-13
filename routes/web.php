@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
 use App\Http\Controllers\Admin\StaffRequestController;
 use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\LiveMonitorController;
+use App\Http\Controllers\Admin\AttemptControlController;
 
 // Student Controllers
 use App\Http\Controllers\Student\Auth\LoginController as StudentLoginController;
@@ -160,6 +162,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('students/bulk-create', [StudentController::class, 'bulkCreate'])->name('students.bulk_create');
         Route::post('students/bulk-store', [StudentController::class, 'bulkStore'])->name('students.bulk_store');
         Route::resource('students', StudentController::class);
+    
+        Route::get('/admin/exams/{exam}/monitor', 
+        [LiveMonitorController::class, 'index']
+    )->name('admin.exams.monitor');
     });
 
     Route::get('questions/bulk-upload', [QuestionController::class, 'bulkForm'])
@@ -216,6 +222,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('exams.update');
     Route::delete('exams/{id}', [ExamController::class, 'destroy'])
         ->name('exams.destroy');
+
+    // Live Monitoring & Control Room
+    Route::get('exams/{id}/monitor', [LiveMonitorController::class, 'index'])->name('exams.monitor');
+    Route::get('exams/{id}/monitor/data', [LiveMonitorController::class, 'data'])->name('exams.monitor.data');
+    
+    // WebRTC Signaling (Admin Side)
+    Route::get('attempts/{attemptId}/stream', [LiveMonitorController::class, 'stream'])->name('attempts.stream');
+    Route::post('attempts/{attemptId}/signal', [LiveMonitorController::class, 'sendSignal'])->name('attempts.signal');
+
+    // Attempt Controls
+    Route::post('attempts/{attemptId}/terminate', [AttemptControlController::class, 'terminate'])->name('attempts.terminate');
+    Route::post('attempts/{attemptId}/extend', [AttemptControlController::class, 'extendTime'])->name('attempts.extend');
 });
 
 // =====================
@@ -234,6 +252,12 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('exams/history', [StudentExamController::class, 'history'])->name('exams.history');
         Route::get('exams/{id}/live', [StudentExamController::class, 'live'])->name('exams.live');
         Route::post('exams/{id}/submit', [StudentExamController::class, 'submit'])->name('exams.submit');
+        Route::post('exams/{id}/violation', [StudentExamController::class, 'logViolation'])->name('exams.violation');
+        
+        // Heartbeat & Signaling
+        Route::post('exams/{id}/heartbeat', [StudentExamController::class, 'heartbeat'])->name('exams.heartbeat');
+        Route::post('exams/{id}/signal', [StudentExamController::class, 'signal'])->name('exams.signal');
+
         Route::post('logout', [StudentLoginController::class, 'logout'])->name('logout');
         Route::view('profile', 'student.profile')->name('profile');
     });

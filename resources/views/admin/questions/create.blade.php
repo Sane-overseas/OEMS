@@ -56,7 +56,7 @@
                         <td class="px-4 py-2">{{ $q->subject }}</td>
                         <td class="px-4 py-2 capitalize">{{ $q->type }}</td>
                         <td class="px-4 py-2 text-gray-700">
-                            {{ Str::limit($q->question,70) }}
+                            {{ Str::limit($q->question_text,70) }}
                         </td>
                         <td class="px-4 py-2">{{ $q->marks }}</td>
                     </tr>

@@ -119,16 +119,22 @@
                                     class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
                                     Schedule
                                 </a>
+                                @endif
 
-                                @else
+                                {{-- Monitor Button: Show if exam is published --}}
+                                @if($exam->status === 'published')
+                                <a href="{{ route('admin.exams.monitor', $exam->id) }}"
+                                   class="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700">
+                                   <i class="bi bi-camera-video"></i> Monitor
+                                </a>
+                                @endif
 
+                                @if($exam->status === 'closed')
                                 <span
                                     class="px-3 py-1.5 text-center w-full font-semibold rounded-lg bg-gray-200 text-red-700">
                                     Exam closed
                                 </span>
-
                                 @endif
-
 
                                 @php
                                 $ready = $exam->schedule
@@ -136,30 +142,24 @@
                                 && count($exam->selected_questions) > 0;
                                 @endphp
 
-
                                 @if($exam->status === 'draft')
-
-                                @if($ready)
-
-                                <form method="POST" action="{{ route('admin.exams.publish',$exam->id) }}"
-                                    onsubmit="return confirm('Publish this exam?')">
-                                    @csrf
-                                    <button
-                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
-                                        Publish
-                                    </button>
-                                </form>
-
-                                @else
-
-                                <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-100 text-yellow-800"
-                                    title="Add questions and schedule before publishing">
-                                    Not ready
-                                </span>
-
+                                    @if($ready)
+                                    <form method="POST" action="{{ route('admin.exams.publish',$exam->id) }}"
+                                        onsubmit="return confirm('Publish this exam?')">
+                                        @csrf
+                                        <button
+                                            class="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
+                                            Publish
+                                        </button>
+                                    </form>
+                                    @else
+                                    <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-yellow-100 text-yellow-800"
+                                        title="Add questions and schedule before publishing">
+                                        Not ready
+                                    </span>
+                                    @endif
                                 @endif
 
-                                @endif
                                 @if($exam->status !== 'closed')
                                 <a href="{{ route('admin.exams.edit',$exam->id) }}"
                                     class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100">
@@ -167,9 +167,7 @@
                                 </a>
                                 @endif
 
-
                                 @if($exam->status === 'published')
-
                                 <form method="POST" action="{{ route('admin.exams.close',$exam->id) }}"
                                     onsubmit="return confirm('Close this exam?')">
                                     @csrf
@@ -178,7 +176,6 @@
                                         Close
                                     </button>
                                 </form>
-
                                 @endif
 
                             </div>

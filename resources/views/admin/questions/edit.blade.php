@@ -74,7 +74,7 @@
                         Question
                     </label>
                     <textarea name="question" rows="3" required
-                        class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">{{ old('question',$question->question) }}</textarea>
+                        class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">{{ old('question',$question->question_text) }}</textarea>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-5">
